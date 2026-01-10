@@ -10,16 +10,5 @@ const client = new Client({
 })
 
 client.connect()
-    // .then(() => console.log("Connected to postgres"))
-    // .catch((err) => console.log(err))
-
-// client.query(`Select * from users`, (err, res) => {
-//     if (err) {
-//         console.log(err)
-//     }
-//     else {
-//         console.log(res.rows)
-//     }
-// })
-
+ 
 module.exports=client;

@@ -1,5 +1,6 @@
 const client = require("../config/databasepg");
 const { v4: uuidv4 } = require("uuid");
+const bcrypt = require("bcrypt");
 
 
 //@route POST /api/auth/register

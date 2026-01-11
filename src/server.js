@@ -3,7 +3,7 @@ const app =require("./app");
 const client=require("./config/databasepg");
 
 const port = process.env.PORT || 5001;
-
+require("dotenv").config();
 client.query(`Select NOW()`,(err,res)=>{
     if(err){
         console.log("DB is not Connected");

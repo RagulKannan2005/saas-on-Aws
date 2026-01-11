@@ -1,6 +1,7 @@
 const client = require("../config/databasepg");
 const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 //@route POST /api/auth/register
 //@desc Register a new user
@@ -26,6 +27,8 @@ const createUser = async (req, res) => {
   const hasedPassword = await bcrypt.hash(password, 10);
 
   try {
+    await client.query("BEGIN");
+
     // -------------------------------------------------------------------------
     // STEP 1: Create Global Tenant Record (Public Schema)
     // -------------------------------------------------------------------------
@@ -69,6 +72,7 @@ const createUser = async (req, res) => {
       )
     `);
 
+    await client.query("COMMIT");
     console.log(`Successfully provisioned schema: ${schemaName}`);
 
     res.status(201).json({
@@ -76,8 +80,13 @@ const createUser = async (req, res) => {
       message: "Registration successful and tenant workspace created.",
     });
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error(err);
-    res.status(500).json({ message: "Registration failed" });
+    res.status(500).json({
+      message: "Registration failed",
+      error: err.message,
+      stack: err.stack,
+    });
   }
 };
 
@@ -110,11 +119,26 @@ const loginUser = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
+    const accessToken = jwt.sign(
+      { id: user.rows[0].id, tenantId: user.rows[0].tenant_id },
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
+    const refreshToken = jwt.sign(
+      { id: user.rows[0].id },
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
+    console.log("Access secret loaded:", !!process.env.ACCESS_TOKEN_SECRET);
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user.rows[0];
 
-    res.status(200).json({ user: userWithoutPassword });
+    res.status(200).json({ user: userWithoutPassword, accessToken });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Login failed" });

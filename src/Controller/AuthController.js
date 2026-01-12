@@ -71,6 +71,16 @@ const createUser = async (req, res) => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+      // We explicitly create the 'tasks' table (and others) inside the new schema.
+    await client.query(`
+      CREATE TABLE "${schemaName}".tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID REFERENCES "${schemaName}".projects(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    status VARCHAR(50) DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    `);
 
     await client.query("COMMIT");
     console.log(`Successfully provisioned schema: ${schemaName}`);
@@ -123,14 +133,14 @@ const loginUser = async (req, res) => {
       { id: user.rows[0].id, tenantId: user.rows[0].tenant_id },
       process.env.ACCESS_TOKEN_SECRET,
       {
-        expiresIn: "1h",
+        expiresIn: "1h", //token expires in 1 hour
       }
     );
     const refreshToken = jwt.sign(
       { id: user.rows[0].id },
       process.env.ACCESS_TOKEN_SECRET,
       {
-        expiresIn: "1d",
+        expiresIn: "1d", //token expires in 1 day
       }
     );
     console.log("Access secret loaded:", !!process.env.ACCESS_TOKEN_SECRET);
@@ -145,4 +155,12 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { createUser, loginUser };
+//Current User
+//@ Get /api/auth/current-user
+//@desc Get current user
+//@access Private
+const getCurrentUser = async (req, res) => {
+  res.json(req.user);
+};
+
+module.exports = { createUser, loginUser, getCurrentUser };

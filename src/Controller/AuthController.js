@@ -71,13 +71,25 @@ const createUser = async (req, res) => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-      // We explicitly create the 'tasks' table (and others) inside the new schema.
+    // We explicitly create the 'tasks' table (and others) inside the new schema.
     await client.query(`
       CREATE TABLE "${schemaName}".tasks (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id UUID REFERENCES "${schemaName}".projects(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     status VARCHAR(50) DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    `);
+    // We explicitly create the 'employees' table (and others) inside the new schema.
+    await client.query(`
+      CREATE TABLE "${schemaName}".employees (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID REFERENCES "${schemaName}".projects(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) DEFAULT 'EMPLOYEE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     `);

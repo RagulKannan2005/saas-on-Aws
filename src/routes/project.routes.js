@@ -8,11 +8,11 @@ const {
   getProjectByID,
 } = require("../Controller/ProjectController");
 const { ValidateToken } = require("../../middleware/ValidateToken");
-
+const { verifyRole } = require("../../middleware/verifyRole");
 router.use(ValidateToken);
-router.post("/projects", createProject);
+router.post("/projects", verifyRole(["COMPANY", "MANAGER"]), createProject);
 router.get("/projects", getAllProjects);
-router.put("/projects/:id", UpdateProject);
-router.delete("/projects/:id", deleteProject);
-router.get("/projects/:id", getProjectByID);
+router.put("/projects/:id", verifyRole(["COMPANY", "MANAGER"]), UpdateProject);
+router.delete("/projects/:id", verifyRole(["COMPANY", "MANAGER"]), deleteProject);
+router.get("/projects/:id", verifyRole(["COMPANY"]), getProjectByID);
 module.exports = router;

@@ -48,7 +48,7 @@ const createUser = async (req, res) => {
       `INSERT INTO users (id, tenant_id, email, password, role)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [userId, tenantId, email, hasedPassword, "OWNER"]
+      [userId, tenantId, email, hasedPassword, "COMPANY"]
     );
 
     // -------------------------------------------------------------------------
@@ -142,7 +142,11 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
     const accessToken = jwt.sign(
-      { id: user.rows[0].id, tenantId: user.rows[0].tenant_id },
+      {
+        id: user.rows[0].id,
+        tenantId: user.rows[0].tenant_id,
+        role: user.rows[0].role,
+      },
       process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: "1h", //token expires in 1 hour

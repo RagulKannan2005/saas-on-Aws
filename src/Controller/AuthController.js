@@ -82,16 +82,28 @@ const createUser = async (req, res) => {
     )
     `);
     // We explicitly create the 'employees' table (and others) inside the new schema.
+    // V2: Create 'employees' table WITHOUT project_id
     await client.query(`
       CREATE TABLE "${schemaName}".employees (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID REFERENCES "${schemaName}".projects(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) DEFAULT 'EMPLOYEE',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role VARCHAR(50) DEFAULT 'EMPLOYEE',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // V2: Create 'project_members' table for Many-to-Many
+    await client.query(`
+      CREATE TABLE "${schemaName}".project_members (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id UUID REFERENCES "${schemaName}".projects(id) ON DELETE CASCADE,
+        employee_id UUID REFERENCES "${schemaName}".employees(id) ON DELETE CASCADE,
+        role VARCHAR(50) DEFAULT 'MEMBER',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(project_id, employee_id)
+      )
     `);
 
     await client.query("COMMIT");

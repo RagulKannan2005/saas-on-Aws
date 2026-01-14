@@ -71,8 +71,8 @@ const createEmployee = async (req, res) => {
 
     const query = `
             INSERT INTO "${schemaName}".employees 
-            (name, email, password, project_id, role) 
-            VALUES ($1, $2, $3, $4, $5) 
+            (name, email, password, role) 
+            VALUES ($1, $2, $3, $4) 
             RETURNING *
         `;
 
@@ -80,9 +80,16 @@ const createEmployee = async (req, res) => {
       name,
       email,
       hashedPassword,
-      project_id || null,
       role || "EMPLOYEE",
     ]);
+
+    // OPTIONAL: If project_id was provided, we could assign them here.
+    // For V2 MVP, we will separate creation and assignment.
+    if (project_id) {
+      // We would INSERT INTO project_members here.
+      // For now, let's keep it simple and just create the user.
+      // The user can be assigned to the project later via the ProjectMember routes.
+    }
 
     res.status(201).json(employee.rows[0]);
   } catch (err) {

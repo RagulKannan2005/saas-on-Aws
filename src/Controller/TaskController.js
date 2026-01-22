@@ -6,6 +6,9 @@ const client = require("../config/databasepg");
 //route POST /api/tasks
 //desc Create a new task
 //access Private
+//route POST /api/tasks
+//desc Create a new task
+//access Private
 const createTask = async (req, res) => {
   const {
     title,
@@ -16,6 +19,8 @@ const createTask = async (req, res) => {
     parentTaskId,
     dueDate,
     type,
+    estimatedHours,
+    actualHours,
   } = req.body;
 
   if (!title || !projectId) {
@@ -43,19 +48,16 @@ const createTask = async (req, res) => {
       }
       if (parentTask.rows[0].project_id !== projectId) {
         await client.query("ROLLBACK");
-        return res
-          .status(400)
-          .json({
-            message:
-              "Subtask must belong to the same project as the parent task",
-          });
+        return res.status(400).json({
+          message: "Subtask must belong to the same project as the parent task",
+        });
       }
     }
 
     // 1. Create Task
     const taskResult = await client.query(
-      `INSERT INTO "${schemaName}".tasks (title, status, project_id, priority, parent_task_id, due_date, type) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) 
+      `INSERT INTO "${schemaName}".tasks (title, status, project_id, priority, parent_task_id, due_date, type, estimated_hours, actual_hours) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
        RETURNING *`,
       [
         title,
@@ -65,6 +67,8 @@ const createTask = async (req, res) => {
         parentTaskId || null,
         dueDate || null,
         type || "TASK",
+        estimatedHours || null,
+        actualHours || null,
       ]
     );
     const newTask = taskResult.rows[0];
@@ -113,7 +117,7 @@ const getTasks = async (req, res) => {
           FILTER (WHERE e.id IS NOT NULL), 
           '[]'
         ) as assignees,
-        (SELECT COUNT(*) FROM "${schemaName}".task_comments tc WHERE tc.task_id = t.id) as comment_count
+        (SELECT COUNT(*) FROM "${schemaName}".task_comments tc WHERE tc.task_id = t.id AND tc.is_deleted = FALSE) as comment_count
       FROM "${schemaName}".tasks t
       LEFT JOIN "${schemaName}".task_assignees ta ON t.id = ta.task_id
       LEFT JOIN "${schemaName}".employees e ON ta.employee_id = e.id
@@ -134,7 +138,16 @@ const getTasks = async (req, res) => {
 //desc Update a task
 //access Private
 const updateTask = async (req, res) => {
-  const { title, status, priority, assignees, dueDate, type } = req.body;
+  const {
+    title,
+    status,
+    priority,
+    assignees,
+    dueDate,
+    type,
+    estimatedHours,
+    actualHours,
+  } = req.body;
   const tenantId = req.user.tenantId;
   const employeeId = req.user.id;
   const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
@@ -177,6 +190,14 @@ const updateTask = async (req, res) => {
     if (type) {
       updateFields.push(`type = $${idx++}`);
       values.push(type);
+    }
+    if (estimatedHours) {
+      updateFields.push(`estimated_hours = $${idx++}`);
+      values.push(estimatedHours);
+    }
+    if (actualHours) {
+      updateFields.push(`actual_hours = $${idx++}`);
+      values.push(actualHours);
     }
 
     if (updateFields.length > 0) {
@@ -315,7 +336,7 @@ const getComments = async (req, res) => {
       `SELECT tc.*, e.name as employee_name, e.email as employee_email 
              FROM "${schemaName}".task_comments tc
              LEFT JOIN "${schemaName}".employees e ON tc.employee_id = e.id
-             WHERE tc.task_id = $1
+             WHERE tc.task_id = $1 AND tc.is_deleted = FALSE
              ORDER BY tc.created_at ASC`,
       [taskId]
     );
@@ -323,6 +344,29 @@ const getComments = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error fetching comments" });
+  }
+};
+
+const deleteComment = async (req, res) => {
+  const { commentId } = req.params;
+  const tenantId = req.user.tenantId;
+  const employeeId = req.user.id;
+  const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
+
+  try {
+    const result = await client.query(
+      `UPDATE "${schemaName}".task_comments SET is_deleted = TRUE WHERE id = $1 AND employee_id = $2 RETURNING *`,
+      [commentId, employeeId]
+    );
+    if (result.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Comment not found or you are not the owner" });
+    }
+    res.json({ message: "Comment deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error deleting comment" });
   }
 };
 
@@ -354,5 +398,6 @@ module.exports = {
   deleteTask,
   addComment,
   getComments,
+  deleteComment,
   getTaskActivity,
 };

@@ -1,9 +1,9 @@
-# SaaS on AWS - Database Documentation (Version 5.0)
+# SaaS on AWS - Database Documentation (Version 5.1)
 
 **Project:** Multi-tenant SaaS Application
 **Database:** PostgreSQL
 **Multi-tenancy Strategy:** Schema-per-Tenant
-**Version:** 5.0
+**Version:** 5.1
 **Last Updated:** January 2026
 
 ---
@@ -13,10 +13,10 @@
 1. [Database Overview](#database-overview)
 2. [Tenancy Architecture](#tenancy-architecture)
 3. [Entity Relationship Summary](#entity-relationship-summary)
-4. [Tables (Version 5.0)](#tables-version-5-0)
+4. [Tables (Version 5.1)](#tables-version-5-1)
 5. [Enums & Types](#enums--types)
 6. [Relationship Explanations](#relationship-explanations)
-7. [Enterprise Features (V5)](#enterprise-features-v5)
+7. [Enterprise Features (V5/V5.1)](#enterprise-features-v5)
 8. [Data Integrity & Constraints](#data-integrity--constraints)
 
 ---
@@ -55,14 +55,18 @@ The application implements a **schema-per-tenant isolation model**:
 
 ---
 
-## Tables (Version 5.0)
+## Tables (Version 5.1)
 
 ### 1. tenants (public schema)
 
 Global registry of companies.
 
 ```sql
-CREATE TABLE public.tenants ( ... );
+CREATE TABLE public.tenants (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
 ### 2. users (public schema)
@@ -70,7 +74,14 @@ CREATE TABLE public.tenants ( ... );
 Company owners/admins.
 
 ```sql
-CREATE TABLE public.users ( ... );
+CREATE TABLE public.users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID REFERENCES tenants(id),
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role VARCHAR(20) DEFAULT 'USER',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
 ### 3. projects (tenant schema)
@@ -108,7 +119,7 @@ The Join Table linking Employees to Projects.
 ```sql
 CREATE TABLE "tenant_xxx".project_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  project_id UUID REFERENCES projects(id) ON DELETE RESTRICT, -- No Cascade!
+  project_id UUID REFERENCES projects(id) ON DELETE RESTRICT,
   employee_id UUID REFERENCES employees(id) ON DELETE CASCADE,
   role VARCHAR(50) DEFAULT 'MEMBER', -- VIEWER, MEMBER, ADMIN
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -123,17 +134,19 @@ The Core Work Unit.
 ```sql
 CREATE TABLE "tenant_xxx".tasks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  project_id UUID REFERENCES projects(id) ON DELETE RESTRICT, -- No Cascade!
+  project_id UUID REFERENCES projects(id) ON DELETE RESTRICT,
   parent_task_id UUID REFERENCES tasks(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
   status task_status_enum DEFAULT 'TODO',
   priority task_priority_enum DEFAULT 'MEDIUM',
-  type task_type_enum DEFAULT 'TASK',    -- [NEW V5]
-  due_date TIMESTAMP,                    -- [NEW V5]
+  type task_type_enum DEFAULT 'TASK',
+  due_date TIMESTAMP,
+  estimated_hours NUMERIC,           -- [NEW V5.1]
+  actual_hours NUMERIC,              -- [NEW V5.1]
   is_deleted BOOLEAN DEFAULT FALSE,
   deleted_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT check_task_project_presence CHECK (project_id IS NOT NULL)
+  CONSTRAINT check_task_project_presence CHECK (project_id IS NOT NULL OR parent_task_id IS NOT NULL) -- [CORRECTED V5.1]
 );
 ```
 
@@ -146,7 +159,7 @@ CREATE TABLE "tenant_xxx".task_assignees (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   task_id UUID REFERENCES tasks(id) ON DELETE CASCADE,
   employee_id UUID REFERENCES employees(id) ON DELETE CASCADE,
-  role VARCHAR(30) DEFAULT 'CONTRIBUTOR', -- [NEW V5]
+  role VARCHAR(30) DEFAULT 'CONTRIBUTOR',
   assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(task_id, employee_id)
 );
@@ -155,6 +168,7 @@ CREATE TABLE "tenant_xxx".task_assignees (
 ### 8. task_activity (tenant schema)
 
 Audit Log for all task changes.
+**Policy:** Immutable. Insert-only.
 
 ```sql
 CREATE TABLE "tenant_xxx".task_activity (
@@ -178,7 +192,8 @@ CREATE TABLE "tenant_xxx".task_comments (
   task_id UUID REFERENCES tasks(id) ON DELETE CASCADE,
   employee_id UUID REFERENCES employees(id),
   comment TEXT NOT NULL,
-  edited_at TIMESTAMP,                   -- [NEW V5]
+  is_deleted BOOLEAN DEFAULT FALSE,      -- [NEW V5.1]
+  edited_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
@@ -199,7 +214,7 @@ CREATE TYPE task_status_enum AS ENUM ('TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE');
 CREATE TYPE task_priority_enum AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
 ```
 
-### Task Type [NEW V5]
+### Task Type
 
 ```sql
 CREATE TYPE task_type_enum AS ENUM ('EPIC', 'TASK', 'BUG');
@@ -207,37 +222,35 @@ CREATE TYPE task_type_enum AS ENUM ('EPIC', 'TASK', 'BUG');
 
 ---
 
-## Enterprise Features (V5)
+## Enterprise Features (V5/V5.1)
 
 ### 1. Safety & Correctness
 
-- **No Cascades**: `ON DELETE CASCADE` removed for Projects. Admin scripts or soft-deletes are required.
-- **Hierarchy Validation**: Subtasks are enforced to belong to the same project as their parent.
+- **Strict No-Cascade Policy**: Projects cannot be hard-deleted if tasks exist.
+- **Hierarchy Validation**: Subtasks must belong to the same project as the parent (Enforced at Application Layer).
+- **Relaxed Constraint**: Tasks must have `project_id` OR `parent_task_id`.
 
 ### 2. Domain Improvements
 
-- **Due Dates**: Tasks now track deadlines.
-- **Assignee Roles**: Differentiates between 'OWNER', 'REVIEWER', 'CONTRIBUTOR'.
-- **Task Types**: Distinguishes Epics vs Bugs vs Tasks.
+- **Time Tracking**: `estimated_hours` vs `actual_hours` for SLA/Billing.
+- **Due Dates**: Tasks track deadlines.
+- **Task Types**: Epics, Bugs, Tasks.
 
-### 3. Performance
+### 3. Comment Moderation
 
-- **Partial Indexes**: `CREATE INDEX ... WHERE is_deleted = FALSE` ensures fast queries on active data.
-- **Covered Indexes**: On `due_date`, `status` for reporting.
+- **Soft Deletes**: Comments are marked `is_deleted=TRUE`, never removed.
 
 ---
 
 ## Data Integrity & Constraints
 
-### Cascading Delete Rules (Strict V5)
+### Application Logic Enforcement (V5.1)
 
-| Operation       | Effect                                  | Tables Affected |
-| --------------- | --------------------------------------- | --------------- |
-| Delete project  | **RESTRICT** (Fails if tasks exist)     | -               |
-| **Soft Delete** | **Recommended** (Set `is_deleted=TRUE`) | projects        |
-
-**Breaking Change V5**: The application MUST NOT rely on DB cascades to clean up project data. Used `updateTask` to soft delete.
+| Rule                       | Location            | Description                                 |
+| -------------------------- | ------------------- | ------------------------------------------- |
+| **Cross-Project Subtasks** | `TaskController.js` | Subtask must match Parent's `project_id`.   |
+| **Audit Log Immutability** | Database Policy     | No UPDATE/DELETE grants on `task_activity`. |
 
 ---
 
-_Documentation Updated for Version 5.0 Release_
+_Documentation Updated for Version 5.1 Release_

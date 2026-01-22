@@ -8,6 +8,7 @@ const {
   addComment,
   getComments,
   getTaskActivity,
+  deleteComment,
 } = require("../Controller/TaskController");
 const { ValidateToken } = require("../../middleware/ValidateToken");
 const { verifyRole } = require("../../middleware/verifyRole");
@@ -23,6 +24,7 @@ router.delete("/tasks/:id", verifyRole(["COMPANY", "MANAGER"]), deleteTask);
 // Comments & Activity
 router.post("/tasks/:taskId/comments", addComment);
 router.get("/tasks/:taskId/comments", getComments);
+router.delete("/comments/:commentId", deleteComment);
 router.get("/tasks/:taskId/activity", getTaskActivity);
 
 module.exports = router;

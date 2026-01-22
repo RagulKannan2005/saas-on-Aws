@@ -11,7 +11,7 @@ const getAllProjects = async (req, res) => {
   const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
   try {
     const projects = await client.query(
-      `SELECT * FROM "${schemaName}".projects`
+      `SELECT * FROM "${schemaName}".projects WHERE is_deleted = FALSE`
     );
     res.json(projects.rows);
   } catch (err) {
@@ -31,17 +31,20 @@ const getProjectByID = async (req, res) => {
         SELECT 
                 p.*,
                 COALESCE(
-                    json_agg(t.*) FILTER (WHERE t.id IS NOT NULL),
+                    json_agg(t.*) FILTER (WHERE t.id IS NOT NULL AND t.is_deleted = FALSE),
                     '[]'
                 ) AS tasks
             FROM "${schemaName}".projects p
             LEFT JOIN "${schemaName}".tasks t
                 ON t.project_id = p.id
-            WHERE p.id = $1
+            WHERE p.id = $1 AND p.is_deleted = FALSE
             GROUP BY p.id
             `,
       [req.params.id]
     );
+    if (project.rows.length === 0) {
+      return res.status(404).json({ message: "Project not found" });
+    }
     res.json(project.rows[0]);
   } catch (err) {
     console.error(err);
@@ -63,15 +66,6 @@ const createProject = async (req, res) => {
   const tenantId = req.user.tenantId;
   const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
 
-  // Removed check that prevents project creation
-  /*
-  const AvailableProjects = await client.query(
-    `SELECT * FROM "${schemaName}".projects`
-  );
-  if (AvailableProjects.rows.length > 0) {
-    return res.status(400).json({ message: "Project already exists" });
-  } 
-  */
   try {
     const project = await client.query(
       `INSERT INTO "${schemaName}".projects (name, description) VALUES ($1, $2) RETURNING *`,
@@ -100,9 +94,12 @@ const UpdateProject = async (req, res) => {
 
   try {
     const project = await client.query(
-      `UPDATE "${schemaName}".projects SET name = $1, description = $2 WHERE id = $3 RETURNING *`,
+      `UPDATE "${schemaName}".projects SET name = $1, description = $2 WHERE id = $3 AND is_deleted = FALSE RETURNING *`,
       [name, description, req.params.id]
     );
+    if (project.rows.length === 0) {
+      return res.status(404).json({ message: "Project not found" });
+    }
     res.status(201).json({ message: "Project updated successfully" });
   } catch (err) {
     console.error(err);
@@ -115,10 +112,16 @@ const deleteProject = async (req, res) => {
   const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
 
   try {
+    // Soft Delete
     const project = await client.query(
-      `DELETE FROM "${schemaName}".projects WHERE id = $1 RETURNING *`,
+      `UPDATE "${schemaName}".projects SET is_deleted = TRUE, deleted_at = NOW() WHERE id = $1 RETURNING *`,
       [req.params.id]
     );
+
+    if (project.rows.length === 0) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
     res.status(201).json({ message: "Project deleted successfully" });
   } catch (err) {
     console.error(err);

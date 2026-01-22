@@ -3,3 +3,5 @@ node_modules
 package-lock.json
 yarn.lock
 settings.json
+.vscode
+DATABASE_DOCUMENTATION.md

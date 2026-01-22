@@ -11,7 +11,7 @@ const getCompanyEmployees = async (req, res) => {
   const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
   try {
     const employees = await client.query(
-      `SELECT * FROM "${schemaName}".employees`
+      `SELECT * FROM "${schemaName}".employees WHERE is_deleted = FALSE`
     );
     if (employees.rows.length === 0) {
       return res.status(404).json({ message: "Employees not found" });
@@ -59,7 +59,7 @@ const createEmployee = async (req, res) => {
 
   try {
     const employeeAvailable = await client.query(
-      `SELECT * FROM "${schemaName}".employees WHERE email=$1`,
+      `SELECT * FROM "${schemaName}".employees WHERE email=$1 AND is_deleted = FALSE`,
       [email]
     );
 
@@ -120,7 +120,7 @@ const loginEmployee = async (req, res) => {
 
   try {
     const employee = await client.query(
-      `SELECT * FROM "${schemaName}".employees WHERE email=$1`,
+      `SELECT * FROM "${schemaName}".employees WHERE email=$1 AND is_deleted = FALSE`,
       [email]
     );
     if (employee.rows.length === 0) {
@@ -202,7 +202,7 @@ const updateEmployee = async (req, res) => {
   const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
   try {
     const employee = await client.query(
-      `SELECT * FROM "${schemaName}".employees WHERE id=$1`,
+      `SELECT * FROM "${schemaName}".employees WHERE id=$1 AND is_deleted = FALSE`,
       [id]
     );
     if (employee.rows.length === 0) {
@@ -213,7 +213,7 @@ const updateEmployee = async (req, res) => {
     // Prevent employees from promoting themselves
     const newRole = req.user.role === "COMPANY" ? role : employee.rows[0].role;
 
-    const query = `UPDATE "${schemaName}".employees SET name=$1,email=$2,password=$3,role=$4 WHERE id=$5 RETURNING *`;
+    const query = `UPDATE "${schemaName}".employees SET name=$1,email=$2,password=$3,role=$4 WHERE id=$5 AND is_deleted = FALSE RETURNING *`;
     const updatedEmployee = await client.query(query, [
       name,
       email,
@@ -238,15 +238,14 @@ const deleteEmployee = async (req, res) => {
   const tenantId = req.user.tenantId;
   const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
   try {
-    const employee = await client.query(
-      `SELECT * FROM "${schemaName}".employees WHERE id=$1`,
-      [id]
-    );
-    if (employee.rows.length === 0) {
+    // Soft Delete
+    const query = `UPDATE "${schemaName}".employees SET is_deleted = TRUE, deleted_at = NOW() WHERE id=$1 RETURNING *`;
+    const deletedEmployee = await client.query(query, [id]);
+
+    if (deletedEmployee.rows.length === 0) {
       return res.status(404).json({ message: "Employee not found" });
     }
-    const query = `DELETE FROM "${schemaName}".employees WHERE id=$1 RETURNING *`;
-    const deletedEmployee = await client.query(query, [id]);
+
     res.json(deletedEmployee.rows[0]);
   } catch (error) {
     console.error(error);

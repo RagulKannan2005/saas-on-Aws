@@ -8,18 +8,18 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
 
 const SideBar = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [active, setActive] = useState("Dashboard");
 
   const navItems = [
-    { title: "Dashboard", icon: LayoutGrid },
-    { title: "Projects", icon: FolderOpen },
-    { title: "Tasks", icon: CheckSquare },
-    { title: "Team", icon: Users },
-    { title: "Settings", icon: Settings },
+    { title: "Dashboard", icon: LayoutGrid, path: "/dashboard" },
+    { title: "Projects", icon: FolderOpen, path: "/projects" },
+    { title: "Tasks", icon: CheckSquare, path: "/tasks" },
+    { title: "Team", icon: Users, path: "/teams" },
+    { title: "Settings", icon: Settings, path: "/settings" },
   ];
 
   return (
@@ -43,17 +43,18 @@ const SideBar = () => {
       <div className="nav-items">
         {navItems.map((item) => {
           const Icon = item.icon;
+
           return (
-            <div
+            <NavLink
               key={item.title}
-              className={`title-name ${
-                active === item.title ? "active" : ""
-              }`}
-              onClick={() => setActive(item.title)}
+              to={item.path}
+              className={({ isActive }) =>
+                `title-name ${isActive ? "active" : ""}`
+              }
             >
               <Icon size={20} />
               {!collapsed && <span>{item.title}</span>}
-            </div>
+            </NavLink>
           );
         })}
       </div>

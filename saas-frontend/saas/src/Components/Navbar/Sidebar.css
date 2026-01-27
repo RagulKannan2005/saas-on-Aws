@@ -1,0 +1,152 @@
+/* ===== Sidebar container ===== */
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, #0b0f1a, #0a0d14);
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+
+/* ===== Top header ===== */
+.first_tile_in_navbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* Center menu icon when collapsed */
+.sidebar.collapsed .first_tile_in_navbar {
+  justify-content: center;
+}
+
+/* ===== Logo ===== */
+.logo {
+  width: 36px;
+  height: 36px;
+  background: #6366f1;
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+/* Properly collapse logo */
+.sidebar.collapsed .logo {
+  width: 0;
+  height: 0;
+  opacity: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== Company name ===== */
+.company_name {
+  font-size: 18px;
+  font-weight: 600;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.sidebar.collapsed .company_name {
+  display: none;
+}
+
+/* ===== Menu icon ===== */
+.icon {
+  cursor: pointer;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+}
+
+.icon:hover {
+  opacity: 1;
+}
+
+/* ===== Navigation ===== */
+.nav-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Nav item */
+.title-name {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #cbd5f5;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* Hover */
+.title-name:hover {
+  background: rgba(99, 102, 241, 0.15);
+  color: #ffffff;
+}
+
+/* Active item */
+.title-name.active {
+  background: #6366f1;
+  color: #ffffff;
+}
+
+/* Text */
+.title-name span {
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Collapsed nav */
+.sidebar.collapsed .title-name {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.sidebar.collapsed .title-name span {
+  display: none;
+}
+
+/* ===== Divider ===== */
+.divider {
+  height: 1px;
+  background: #1f2937;
+  margin: 20px 0;
+}
+
+/* ===== Sign out ===== */
+.signout {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #cbd5f5;
+}
+
+.signout:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ffffff;
+}
+
+.sidebar.collapsed .signout {
+  justify-content: center;
+}
+
+.sidebar.collapsed .signout span {
+  display: none;
+}

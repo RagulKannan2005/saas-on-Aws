@@ -9,8 +9,10 @@
   min-height: 100vh;
 }
 
+
 .main-content {
   flex: 1;
-  padding: 20px;
-  background-color: #f9fafb;
+  /* padding: 20px; */
+  
+
 }

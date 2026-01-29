@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import SideBar from "../src/Components/Navbar/SideBar";
 
-import Dashboard from "../src/Components/Dashboard/Dashboard";
+import Dashboard from "../src/Components/Dashboard/DashBoard";
 import Projects from "../src/Components/Projects/Projects";
 import Tasks from "../src/Components/Tasks/Tasks";
 import Teams from "../src/Components/Teams/Teams";

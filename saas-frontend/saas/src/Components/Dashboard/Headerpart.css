@@ -1,0 +1,101 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+}
+
+.dashboardheader {
+    height: 70px;
+    width: 100%;
+    background: linear-gradient(145deg, #141414, #1b1b1b);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Left side */
+.company_details h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.company_details span {
+    font-size: 13px;
+    color: #b5b5b5;
+}
+
+/* Right side */
+.right_section {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    color: #cfcfcf;
+}
+
+.icon:hover {
+    color: #ffffff;
+}
+
+/* Profile circle */
+.user_profile {
+    width: 36px;
+    height: 36px;
+    background-color: #6c7cff;
+    border-radius: 50%;
+}
+
+/* User text */
+.user_info h3 {
+    font-size: 14px;
+    margin: 0;
+    font-weight: 500;
+}
+
+.user_info span {
+    font-size: 12px;
+    color: #a0a0a0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboardheader {
+        padding-left: 60px;
+        /* Space for mobile toggle button */
+        padding-right: 16px;
+        height: 64px;
+    }
+
+    .company_details h2 {
+        font-size: 16px;
+    }
+
+    .company_details span {
+        display: none;
+        /* Hide subtitle to save space */
+    }
+
+    .right_section {
+        gap: 12px;
+    }
+
+    .user_info h3 {
+        display: none;
+        /* Hide user name on mobile, show only avatar */
+    }
+
+    .user_info span {
+        display: none;
+    }
+}

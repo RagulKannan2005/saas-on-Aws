@@ -1,33 +1,35 @@
 import React from "react";
-import { Bell, Settings } from "lucide-react";
+import Headerpart from "./Headerpart";
+import { FileText,Clock,CheckCircle,AlertCircle } from "lucide-react";
 import "./DashBoard.css";
-
+import StatsCard from "../Card/StateCard";
 const DashBoard = () => {
   return (
     //dashboard header
     <>
+      <div className="dashboard_content">
+        <Headerpart />
+        <div className="project_detail_container">
+          <div className="dashboard_content" style={{ padding: "20px" }}>
+            <h1>Dashboard</h1>
+            <p>Welcome to your project management hub</p>
+          </div>
+          
+          <div className="project_overview_container">
+            <StatsCard title="Total Projects" value="12" icon={<FileText />} />
 
-      <div className="dashboardheader">
-        <div className="company_details">
-          <h2>Acme Corporation</h2>
-          <span>Welcome back, Sarah</span>
-        </div>
+            <StatsCard title="Total Tasks" value="147" icon={<Clock />} />
 
-        <div className="right_section">
-          <Bell className="icon" />
-          <Settings className="icon" />
+            <StatsCard
+              title="Completed Tasks"
+              value="89"
+              icon={<CheckCircle />}
+            />
 
-          <div className="user_profile"></div>
-
-          <div className="user_info">
-            <h3>Sarah Johnson</h3>
-            <span>Admin</span>
+            <StatsCard title="Overdue Tasks" value="8" icon={<AlertCircle />} />
           </div>
         </div>
       </div>
-    <div className="dashboard_content">
-      <h1>Dashboard</h1>
-    </div>
     </>
   );
 };

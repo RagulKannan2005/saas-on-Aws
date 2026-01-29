@@ -7,8 +7,9 @@
   display: flex;
   flex-direction: column;
   padding: 16px;
-  transition: width 0.3s ease;
+  transition: all 0.3s ease;
   overflow: hidden;
+  z-index: 100;
 }
 
 .sidebar.collapsed {
@@ -150,4 +151,73 @@
 
 .sidebar.collapsed .signout span {
   display: none;
+}
+
+/* ================= Mobile & Responsive ================= */
+
+/* Default hidden elements on Desktop */
+.overlay {
+  display: none;
+}
+
+.mobile_toggle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+
+  /* Mobile Toggle Button */
+  .mobile_toggle {
+    display: flex;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 99;
+    background: #1e1f33;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Overlay Backdrop */
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 998;
+    backdrop-filter: blur(2px);
+  }
+
+  .overlay.show {
+    display: block;
+  }
+
+  /* Sidebar Drawer Logic */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 999;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.6);
+    /* By default (not collapsed) it shows, so no transform needed here if we want it visible */
+    /* But if we want it hidden when 'collapsed' is true */
+  }
+
+  /* When collapsed (hidden on mobile) */
+  .sidebar.collapsed {
+    width: 260px;
+    /* Keep full width, just move it off screen */
+    transform: translateX(-100%);
+  }
+
+  /* Hide the internal collapse button on mobile since we have the external toggle */
+  .sidebar .icon {
+    display: none;
+  }
 }

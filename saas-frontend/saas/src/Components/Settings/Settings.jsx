@@ -1,11 +1,13 @@
 import React from "react";
 import "./Setting.css";
+import Headerpart from "../Dashboard/Headerpart";
 const Settings = () => {
   return (
     <>
-      <h1 style={{ color: "red" }}>
-        Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quasi, ad.
-      </h1>
+      <Headerpart />
+      <div className="dashboard_content" style={{ padding: "20px" }}>
+        <h1>Settings</h1>
+      </div>
     </>
   );
 };

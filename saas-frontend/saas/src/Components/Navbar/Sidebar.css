@@ -2,6 +2,8 @@
 .sidebar {
   width: 260px;
   height: 100vh;
+  position: sticky;
+  top: 0;
   background: linear-gradient(180deg, #0b0f1a, #0a0d14);
   color: #e5e7eb;
   display: flex;
@@ -10,6 +12,7 @@
   transition: all 0.3s ease;
   overflow: hidden;
   z-index: 100;
+
 }
 
 .sidebar.collapsed {

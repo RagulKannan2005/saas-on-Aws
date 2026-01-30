@@ -13,6 +13,7 @@
 .main-content {
   flex: 1;
   /* padding: 20px; */
-  
-
+  width: 100%;
+  background-color: #141415;
+  color: white;
 }

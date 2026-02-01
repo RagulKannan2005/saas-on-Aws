@@ -1,0 +1,38 @@
+.project_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.project_header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    color: #fff;
+}
+
+.project_header p {
+    margin: 4px 0 0 0;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.new_project_button button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #6c7cff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.new_project_button button:hover {
+    background-color: #5a6ae6;
+}

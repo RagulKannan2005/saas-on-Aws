@@ -173,14 +173,22 @@
   .mobile_toggle {
     display: flex;
     position: fixed;
-    top: 15px;
+    top: 12px;
+    /* Centered in 64px header (64-40)/2 = 12 */
     left: 15px;
-    z-index: 99;
-    background: #1e1f33;
+    z-index: 101;
+    /* Ensure it's above header (99) and sidebar (100) */
+    background: transparent;
     padding: 8px;
     border-radius: 8px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    /* Removed box-shadow and solid background for cleaner look */
+    color: #fff;
+    transition: background 0.2s;
+  }
+
+  .mobile_toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
   }
 
   /* Overlay Backdrop */

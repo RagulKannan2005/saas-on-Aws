@@ -344,6 +344,8 @@ const Tasks = () => {
                 <strong>John Smith</strong>
                 <p>Started working on this task. Will have an update by EOD.</p>
               </div>
+                <input type="text" name="comment" id="comment" placeholder="Add a comment" />
+                <button className="add_comment_btn">Add Comment</button>
             </div>
           </div>
         </div>

@@ -61,73 +61,68 @@ const DashBoard = () => {
       <Headerpart />
       <div className="dashboard_content">
         <div className="project_detail_container">
-          <div className="dashboard_content" style={{ padding: "20px" }}>
-            <div
+          {/* Header Section */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "30px",
+            }}
+          >
+            <div>
+              <h1>Dashboard</h1>
+              <p>Welcome to your project management hub</p>
+            </div>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                background: "#141414",
+                color: "white",
+                border: "1px solid #333",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                outline: "none",
+                cursor: "pointer",
               }}
             >
-              <div>
-                <h1>Dashboard</h1>
-                <p>Welcome to your project management hub</p>
-              </div>
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                style={{
-                  background: "#141414",
-                  color: "white",
-                  border: "1px solid #333",
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  outline: "none",
-                  cursor: "pointer",
-                }}
-              >
-                <option value="January">January</option>
-                <option value="February">February</option>
-                <option value="March">March</option>
-              </select>
-            </div>
+              <option value="January">January</option>
+              <option value="February">February</option>
+              <option value="March">March</option>
+            </select>
           </div>
 
           <div className="project_overview_container">
             <StatsCard title="Total Projects" value="12" icon={<FileText />} />
-
             <StatsCard title="Total Tasks" value="147" icon={<Clock />} />
-
             <StatsCard
               title="Completed Tasks"
               value="89"
               icon={<CheckCircle />}
             />
-
             <StatsCard title="Overdue Tasks" value="8" icon={<AlertCircle />} />
           </div>
         </div>
-      </div>
-      <div
-        style={{
-          display: "flex",
-          gap: "20px",
-          padding: "0 20px 20px 20px",
-          flexWrap: "wrap",
-          marginTop: "20px",
-        }}
-      >
-        {/* <div className="charts"> */}
-        <div style={{ flex: 2, minWidth: "300px" }}>
-          <ActivityBarChart data={chartData[selectedMonth].bar} />
+
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            flexWrap: "wrap",
+            marginTop: "30px",
+          }}
+        >
+          <div style={{ flex: 2, minWidth: "300px" }}>
+            <ActivityBarChart data={chartData[selectedMonth].bar} />
+          </div>
+          <div style={{ flex: 1, minWidth: "300px" }}>
+            <TaskCompletionDonut data={chartData[selectedMonth].donut} />
+          </div>
         </div>
-        <div style={{ flex: 1, minWidth: "300px" }}>
-          <TaskCompletionDonut data={chartData[selectedMonth].donut} />
+        <div className="recentwork">
+          <RecentWork />
         </div>
-        {/* </div> */}
-      </div>
-      <div className="recentwork">
-        <RecentWork />
       </div>
     </>
   );

@@ -136,6 +136,23 @@
     /* Horizontal scroll */
 }
 
+.tasks_table_container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.tasks_table_container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.tasks_table_container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.tasks_table_container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
 .tasks_table_header,
 .tasks_row {
     display: grid;
@@ -302,6 +319,23 @@
     animation: modalSlideUp 0.3s ease-out;
     max-height: 90vh;
     overflow-y: auto;
+}
+
+.modal_container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal_container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal_container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.modal_container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 @keyframes modalSlideUp {
@@ -553,7 +587,8 @@
     font-size: 0.9rem;
     color: #94a3b8;
 }
-.add_comment_btn{
+
+.add_comment_btn {
     margin-top: 10px;
     background: #6366f1;
     border: none;
@@ -564,7 +599,8 @@
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
-#comment{
+
+#comment {
     width: 100%;
     padding: 10px;
     border-radius: 10px;

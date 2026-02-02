@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Headerpart from "../Dashboard/Headerpart";
-import { Plus, Eye, Pencil, Trash2 } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, X } from "lucide-react";
 import "./Projects.css";
 
 /* ---------- Action Menu ---------- */
@@ -52,6 +52,8 @@ const ActionMenu = () => {
 
 /* ---------- Main Component ---------- */
 const Projects = () => {
+  const [showModal, setShowModal] = useState(false);
+
   const projectsData = [
     {
       id: 1,
@@ -85,7 +87,7 @@ const Projects = () => {
           </div>
 
           <div className="new_project_button">
-            <button>
+            <button onClick={() => setShowModal(true)}>
               <Plus size={20} />
               New Project
             </button>
@@ -105,8 +107,12 @@ const Projects = () => {
           </div>
 
           {/* Rows */}
-          {projectsData.map((project) => (
-            <div key={project.id} className="project_row">
+          {projectsData.map((project, index) => (
+            <div
+              key={project.id}
+              className="project_row"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
               <div className="project_info">
                 <h4>{project.name}</h4>
                 <span>{project.description}</span>
@@ -121,6 +127,43 @@ const Projects = () => {
           ))}
         </div>
       </div>
+
+      {/* ---------- Create Project Modal ---------- */}
+      {showModal && (
+        <div className="modal_overlay">
+          <div className="modal_container">
+            <div className="modal_header">
+              <div>
+                <h2>Create New Project</h2>
+                <p>Create a new project to organize your work</p>
+              </div>
+              <X
+                className="close_icon"
+                onClick={() => setShowModal(false)}
+                size={20}
+              />
+            </div>
+
+            <div className="modal_body">
+              <label>Project Name</label>
+              <input placeholder="Enter project name" />
+
+              <label>Description</label>
+              <textarea placeholder="Enter project description" rows="4" />
+            </div>
+
+            <div className="modal_footer">
+              <button
+                className="cancel_btn"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+              <button className="create_btn">Create Project</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

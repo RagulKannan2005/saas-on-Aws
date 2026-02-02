@@ -1,0 +1,240 @@
+.Team_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.Team_header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    color: #fff;
+}
+
+.Team_header p {
+    margin: 4px 0 0 0;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.new_team_btn {
+    display: flex;
+    gap: 12px;
+}
+
+.new_team_btn button {
+    display: flex;
+    align-items: center;
+    /* fix align-self: center which was weird on button itself */
+    gap: 8px;
+    background-color: #6c7cff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    white-space: nowrap;
+    /* prevent wrapping text */
+}
+
+@media (max-width: 640px) {
+    .Team_header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .new_team_btn {
+        width: 100%;
+        flex-direction: column;
+        /* Stack buttons on mobile */
+    }
+
+    .new_team_btn button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.new_team_btn button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
+
+.employee_cards_container {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.employees_active_details {
+    width: 100%;
+}
+
+/* Duplicated rule removed */
+
+.employee_card {
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 12px;
+    flex: 1;
+    min-width: 300px;
+    color: #fff;
+    border: 1px solid #333;
+    transition: all 0.3s ease;
+}
+
+.employee_card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    border-color: #444;
+}
+
+.employee_card h2 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(to right, #fff, #9ca3af);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.employee_card p {
+    margin: 4px 0 0 0;
+    color: #9ca3af;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+
+/* Employee Table Section */
+.employee_table_info {
+    margin-top: 40px;
+    background-color: #1e1e1e;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #333;
+    overflow-x: auto;
+    /* Enable horizontal scrolling */
+}
+
+.employee_table_header {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1.5fr 1fr 1fr 1fr 1fr;
+    gap: 16px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    align-items: center;
+    min-width: 900px;
+    /* Ensure table keeps its shape and triggers scroll */
+}
+
+.employee_table_header h2 {
+    grid-column: 1 / -1;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: #fff;
+    position: sticky;
+    left: 0;
+}
+
+.employee_table_header p {
+    color: #9ca3af;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.teams_list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 900px;
+    /* Match header width */
+}
+
+.employee_row {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1.5fr 1fr 1fr 1fr 1fr;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid #333;
+    align-items: center;
+    transition: background-color 0.2s;
+    border-radius: 6px;
+}
+
+.employee_row:hover {
+    background-color: #2a2a2a;
+}
+
+.employee_row:last-child {
+    border-bottom: none;
+}
+
+.employee_row p {
+    margin: 0;
+    color: #e5e7eb;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 640px) {
+    .employee_card {
+        min-width: 100%;
+        /* Full width on mobile */
+    }
+
+    .employee_table_info {
+        padding: 16px;
+        /* Save space on mobile */
+    }
+}
+
+.employee_status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Dot */
+.employee_status::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* Active */
+.employee_status.active {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+/* Inactive */
+.employee_status.inactive {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+/* On Leave */
+.employee_status.on_leave {
+    background: rgba(234, 179, 8, 0.15);
+    color: #eab308;
+}

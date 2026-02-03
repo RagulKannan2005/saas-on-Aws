@@ -1,0 +1,107 @@
+.privacy_wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    padding: 1rem 0;
+}
+
+.visibility_options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.radio_option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: #1f1f1f;
+    border: 1px solid #333;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.radio_option:hover {
+    border-color: #4b5563;
+    background: #252525;
+}
+
+/* Hide default radio */
+.radio_option input[type="radio"] {
+    display: none;
+}
+
+/* Selected State */
+.radio_option:has(input:checked) {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.radio_content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.radio_header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.radio_header svg {
+    color: #9ca3af;
+}
+
+.radio_option:has(input:checked) .radio_header svg {
+    color: #818cf8;
+}
+
+.radio_header h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #e5e7eb;
+}
+
+.radio_content p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #9ca3af;
+    padding-left: 2rem;
+    /* Indent to align with text */
+}
+
+/* Custom Radio Indicator */
+.radio_indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #4b5563;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.radio_option:has(input:checked) .radio_indicator {
+    border-color: #6366f1;
+}
+
+.radio_indicator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 10px;
+    height: 10px;
+    background: #6366f1;
+    border-radius: 50%;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.radio_option:has(input:checked) .radio_indicator::after {
+    transform: translate(-50%, -50%) scale(1);
+}

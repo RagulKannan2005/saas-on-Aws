@@ -1,0 +1,233 @@
+.account_wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    padding: 1rem 0;
+}
+
+.account_section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.section_header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.75rem;
+}
+
+.section_header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #e5e7eb;
+    margin: 0;
+}
+
+.section_header p {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin: 0.25rem 0 0 0;
+}
+
+.account_form_grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+/* Custom Input Styles */
+.input_with_badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input_with_badge input {
+    width: 100%;
+    padding-right: 80px;
+    /* Space for badge */
+}
+
+.badge.verified {
+    position: absolute;
+    right: 10px;
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.helper_text {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0.25rem 0 0 0;
+}
+
+.input_prefix_wrapper {
+    display: flex;
+    align-items: center;
+    background: #1f1f1f;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.input_prefix {
+    padding: 0.75rem 0 0.75rem 1rem;
+    color: #6b7280;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+.input_prefix_wrapper input {
+    border: none;
+    background: transparent;
+    padding-left: 0;
+}
+
+.input_prefix_wrapper input:focus {
+    box-shadow: none;
+}
+
+.input_prefix_wrapper:focus-within {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.account_section select {
+    background: #1f1f1f;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: #f3f4f6;
+    font-size: 0.95rem;
+    width: 100%;
+}
+
+.account_section select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* Special Cards */
+.export_card,
+.danger_card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #1f1f1f;
+}
+
+.export_info,
+.danger_info {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.export_info svg {
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.export_info h4,
+.danger_info h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #e5e7eb;
+}
+
+.export_info p,
+.danger_info p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.875rem;
+    color: #9ca3af;
+}
+
+.export_btn {
+    padding: 0.6rem 1rem;
+    background: transparent;
+    border: 1px solid #333;
+    color: #e5e7eb;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.export_btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Danger Zone */
+.account_section.danger_zone .section_header h3.danger_text {
+    color: #ef4444;
+}
+
+.danger_card {
+    border-color: rgba(239, 68, 68, 0.2);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.danger_icon {
+    color: #ef4444;
+}
+
+.delete_account_btn {
+    padding: 0.6rem 1rem;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.delete_account_btn:hover {
+    background: #dc2626;
+}
+
+@media (max-width: 768px) {
+    .account_form_grid {
+        grid-template-columns: 1fr;
+    }
+
+    .export_card,
+    .danger_card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .export_btn,
+    .delete_account_btn {
+        width: 100%;
+    }
+
+    .input_with_badge input {
+        padding-right: 1rem;
+        /* Reset padding if badge moves */
+    }
+
+    .badge.verified {
+        position: static;
+        margin-top: 0.5rem;
+        display: inline-block;
+        margin-left: auto;
+    }
+
+    .input_with_badge {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

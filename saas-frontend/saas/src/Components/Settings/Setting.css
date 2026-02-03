@@ -1,4 +1,4 @@
-/* Clean up universal selector */
+/* Main Layout */
 .dashboard_content {
     background: #0f0f0f;
     min-height: 100vh;
@@ -7,9 +7,10 @@
 }
 
 .settings_container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     animation: fadeIn 0.4s ease-out;
+    padding-bottom: 40px;
 }
 
 @keyframes fadeIn {
@@ -25,11 +26,13 @@
 }
 
 .settings_header {
-    margin-bottom: 32px;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .settings_header h1 {
-    font-size: 28px;
+    font-size: 2rem;
     font-weight: 700;
     margin: 0;
     background: linear-gradient(to right, #fff, #94a3b8);
@@ -40,19 +43,20 @@
 }
 
 .settings_header p {
-    margin: 6px 0 0 0;
+    margin: 0.5rem 0 0 0;
     color: #94a3b8;
-    font-size: 15px;
+    font-size: 1rem;
 }
 
 .settings_body {
     display: flex;
-    gap: 32px;
+    gap: 3rem;
+    position: relative;
 }
 
 /* Sidebar */
 .settings_sidebar {
-    width: 280px;
+    width: 260px;
     flex-shrink: 0;
 }
 
@@ -62,33 +66,35 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 0.5rem;
+    position: sticky;
+    top: 90px;
+    /* Header is 70px + 20px gap */
 }
 
 .settings_menu_item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border-radius: 12px;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
     color: #94a3b8;
-    font-size: 14px;
+    font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
     border: 1px solid transparent;
 }
 
 .settings_menu_item:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.05);
     color: #fff;
 }
 
 .settings_menu_item.active {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(79, 70, 229, 0.05));
+    background: rgba(99, 102, 241, 0.1);
     color: #818cf8;
     border: 1px solid rgba(99, 102, 241, 0.2);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .settings_menu_item svg {
@@ -104,66 +110,94 @@
 /* Content Area */
 .settings_content {
     flex: 1;
-    background: #1e1e1e;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 32px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    min-width: 0;
+    /* Prevents overflow in flex children */
 }
 
 .content_header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    padding-bottom: 24px;
-    margin-bottom: 24px;
+    margin-bottom: 2rem;
 }
 
 .content_header h2 {
-    font-size: 24px;
+    font-size: 1.5rem;
     font-weight: 600;
     color: #fff;
     margin: 0;
-    letter-spacing: -0.5px;
 }
 
 .content_header p {
-    margin: 4px 0 0 0;
+    margin: 0.25rem 0 0 0;
     color: #94a3b8;
-    font-size: 14px;
+    font-size: 0.95rem;
 }
 
 .content_body {
     animation: fadeIn 0.3s ease-out;
+    background: #18181b;
+    /* Slightly lighter than main bg */
+    border: 1px solid #27272a;
+    border-radius: 12px;
+    padding: 2rem;
 }
 
 .placeholder_card {
     background: rgba(255, 255, 255, 0.02);
     border: 1px dashed rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 40px;
+    padding: 3rem;
     text-align: center;
     color: #94a3b8;
 }
 
-/* Response Design */
-@media (max-width: 768px) {
+/* Responsive Design */
+@media (max-width: 1024px) {
     .settings_body {
         flex-direction: column;
+        gap: 2rem;
     }
 
     .settings_sidebar {
         width: 100%;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        padding-bottom: 20px;
-        margin-bottom: 10px;
     }
 
     .settings_menu {
         flex-direction: row;
         overflow-x: auto;
-        padding-bottom: 10px;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: static;
+        -webkit-overflow-scrolling: touch;
     }
 
     .settings_menu_item {
         white-space: nowrap;
+        padding: 0.6rem 1.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard_content {
+        padding: 1rem;
+    }
+
+    .settings_container {
+        padding-bottom: 80px;
+        /* Space for bottom nav if present, or just extra safe area */
+    }
+
+    .settings_header {
+        margin-bottom: 1.5rem;
+    }
+
+    .settings_header h1 {
+        font-size: 1.75rem;
+    }
+
+    .content_body {
+        padding: 1.5rem;
+    }
+
+    .placeholder_card {
+        padding: 2rem 1rem;
     }
 }

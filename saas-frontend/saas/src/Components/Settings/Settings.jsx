@@ -11,20 +11,32 @@ import {
 import React, { useState } from "react";
 import Headerpart from "../Dashboard/Headerpart";
 import "./Setting.css";
+import Profile from "./Settings_Components/profile/Profile";
+import Account from "./Settings_Components/Account/Account";
+import Notification from "./Settings_Components/Notification/Notification";
+import Security from "./Settings_Components/Security/Security";
+import Privacy from "./Settings_Components/Privacy/Privacy";
+import Billing from "./Settings_Components/Billing/Billing";
+import Subscription from "./Settings_Components/Subscription/Subscription";
+import Help from "./Settings_Components/Help/Help";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("Profile");
 
   const menuItems = [
-    { name: "Profile", icon: User },
-    { name: "Account", icon: SettingsIcon },
-    { name: "Notifications", icon: Bell },
-    { name: "Security", icon: Shield },
-    { name: "Privacy", icon: Lock },
-    { name: "Billing", icon: CreditCard },
-    { name: "Subscription", icon: Gem },
-    { name: "Help", icon: HelpCircle },
+    { name: "Profile", icon: User, component: Profile },
+    { name: "Account", icon: SettingsIcon, component: Account },
+    { name: "Notifications", icon: Bell, component: Notification },
+    { name: "Security", icon: Shield, component: Security },
+    { name: "Privacy", icon: Lock, component: Privacy },
+    { name: "Billing", icon: CreditCard, component: Billing },
+    { name: "Subscription", icon: Gem, component: Subscription },
+    { name: "Help", icon: HelpCircle, component: Help },
   ];
+
+  const activeMenu = menuItems.find((item) => item.name === activeTab);
+
+  const ActiveComponent = activeMenu?.component;
 
   return (
     <>
@@ -35,6 +47,7 @@ const Settings = () => {
             <h1>Settings</h1>
             <p>Manage your account and preferences</p>
           </div>
+
           <div className="settings_body">
             <div className="settings_sidebar">
               <ul className="settings_menu">
@@ -52,16 +65,21 @@ const Settings = () => {
                 ))}
               </ul>
             </div>
+
             <div className="settings_content">
               <div className="content_header">
                 <h2>{activeTab}</h2>
                 <p>Manage your {activeTab.toLowerCase()} settings</p>
               </div>
+
               <div className="content_body">
-                {/* Placeholder content for demonstration */}
-                <div className="placeholder_card">
-                  <p>Settings for {activeTab} will appear here.</p>
-                </div>
+                {ActiveComponent ? (
+                  <ActiveComponent />
+                ) : (
+                  <div className="placeholder_card">
+                    <p>Settings for {activeTab} will appear here.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

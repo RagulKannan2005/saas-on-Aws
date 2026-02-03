@@ -1,0 +1,162 @@
+.billing_wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    padding: 1rem 0;
+}
+
+.payment_methods_list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.payment_method_item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #1f1f1f;
+    border: 1px solid #333;
+    border-radius: 12px;
+    gap: 1rem;
+}
+
+.card_icon_wrapper {
+    width: 48px;
+    height: 32px;
+    background: white;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+.card_logo {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.card_details {
+    flex: 1;
+}
+
+.card_details h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #e5e7eb;
+}
+
+.card_details p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.85rem;
+    color: #9ca3af;
+}
+
+.add_payment_btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: transparent;
+    border: 1px dashed #4b5563;
+    border-radius: 12px;
+    color: #e5e7eb;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.add_payment_btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #6366f1;
+    color: #818cf8;
+}
+
+/* Invoice Table */
+.invoice_table_container {
+    margin-top: 1.5rem;
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.invoice_table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.invoice_table th {
+    text-align: left;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid #333;
+    color: #9ca3af;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.invoice_table td {
+    padding: 1rem;
+    border-bottom: 1px solid #333;
+    color: #e5e7eb;
+    font-size: 0.95rem;
+}
+
+.invoice_table tr:last-child td {
+    border-bottom: none;
+}
+
+.status_badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status_badge.paid {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+.download_btn {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: transparent;
+    border: none;
+    color: #6366f1;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .payment_method_item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .payment_method_item .text_btn {
+        width: 100%;
+        text-align: left;
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 6px;
+        text-align: center;
+    }
+
+    .invoice_table_container {
+        overflow-x: auto;
+    }
+
+    .invoice_table {
+        min-width: 500px;
+        /* Force scroll on very small screens */
+    }
+}

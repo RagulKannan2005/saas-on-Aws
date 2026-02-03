@@ -7,12 +7,16 @@ import {
   Users,
   Settings,
   LogOut,
+  UserPlus,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 
 const SideBar = () => {
   const [collapsed, setCollapsed] = useState(window.innerWidth < 768);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Temporary auth state simulation
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -40,6 +44,7 @@ const SideBar = () => {
     { title: "Tasks", icon: CheckSquare, path: "/tasks" },
     { title: "Team", icon: Users, path: "/teams" },
     { title: "Settings", icon: Settings, path: "/settings" },
+    
   ];
 
   return (
@@ -95,9 +100,29 @@ const SideBar = () => {
         <div className="divider" />
 
         {/* ===== Sign Out ===== */}
-        <div className="signout">
-          <LogOut size={20} />
-          {!collapsed && <span>Sign Out</span>}
+        {/* ===== Login ===== */}
+
+        {/* ===== Auth Buttons ===== */}
+        {/* ===== Auth Buttons ===== */}
+        <div className="auth-buttons">
+          {!isLoggedIn ? (
+            <>
+              <div className="login" onClick={() => navigate("/login")}>
+                <LogOut size={20} style={{ transform: "rotate(180deg)" }} />
+                {!collapsed && <span>Login</span>}
+              </div>
+
+              <div className="login" onClick={() => navigate("/register")}>
+                <UserPlus size={20} />
+                {!collapsed && <span>Register</span>}
+              </div>
+            </>
+          ) : (
+            <div className="signout" onClick={() => setIsLoggedIn(false)}>
+              <LogOut size={20} />
+              {!collapsed && <span>Sign Out</span>}
+            </div>
+          )}
         </div>
       </nav>
     </>

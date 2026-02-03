@@ -131,9 +131,19 @@
   margin: 20px 0;
 }
 
-/* ===== Sign out ===== */
-.signout {
+/* ===== Auth Group ===== */
+.auth-buttons {
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* Space between Login and Register */
+}
+
+/* ===== Sign out / Generic Auth Button ===== */
+.signout {
+  /* margin-top: auto; */
+  /* Removed from individual button */
   display: flex;
   align-items: center;
   gap: 14px;
@@ -141,18 +151,40 @@
   border-radius: 10px;
   cursor: pointer;
   color: #cbd5f5;
+  transition: all 0.3s ease;
 }
 
 .signout:hover {
   background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* Reusing signout class for Login but with different hover color if needed */
+/* If you want a specific Login style, we can add a modifier class */
+.login {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #cbd5f5;
+  transition: all 0.3s ease;
+}
+
+.login:hover {
+  background: rgba(99, 102, 241, 0.15);
+  /* Indigo hover for Login */
   color: #ffffff;
 }
 
-.sidebar.collapsed .signout {
+.sidebar.collapsed .signout,
+.sidebar.collapsed .login {
   justify-content: center;
 }
 
-.sidebar.collapsed .signout span {
+.sidebar.collapsed .signout span,
+.sidebar.collapsed .login span {
   display: none;
 }
 
@@ -230,5 +262,13 @@
   /* Hide the internal collapse button on mobile since we have the external toggle */
   .sidebar .icon {
     display: none;
+  }
+}
+
+/* Ensure main content is not hidden behind sidebar on desktop */
+@media (min-width: 769px) {
+  .sidebar {
+    position: sticky;
+    /* Double check this constraint */
   }
 }

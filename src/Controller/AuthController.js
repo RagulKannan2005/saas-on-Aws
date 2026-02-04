@@ -7,16 +7,16 @@ const jwt = require("jsonwebtoken");
 //@desc Register a new user
 //@access Public
 const createUser = async (req, res) => {
-  const { companyName, email, password } = req.body;
+  const { company, admin } = req.body;
 
-  if (!companyName || !email || !password) {
+  if (!company || !company.name || !admin || !admin.email || !admin.password) {
     return res.status(400).json({
-      message: "companyName, email and password are required",
+      message: "Company Name, Email and Password are required",
     });
   }
   const userAvailable = await client.query(
     "SELECT * FROM users WHERE email = $1",
-    [email]
+    [admin.email],
   );
 
   if (userAvailable.rows.length > 0) {
@@ -24,7 +24,7 @@ const createUser = async (req, res) => {
       message: "User already exists",
     });
   }
-  const hasedPassword = await bcrypt.hash(password, 10);
+  const hasedPassword = await bcrypt.hash(admin.password, 10);
 
   try {
     await client.query("BEGIN");
@@ -34,10 +34,18 @@ const createUser = async (req, res) => {
     // -------------------------------------------------------------------------
     // This stores the high-level company info in the shared 'public' catalog.
     const tenantId = uuidv4();
-    await client.query("INSERT INTO tenants (id, name) VALUES ($1, $2)", [
-      tenantId,
-      companyName,
-    ]);
+    await client.query(
+      "INSERT INTO tenants (id, name, industry, size, domain, country, timezone) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      [
+        tenantId,
+        company.name,
+        company.industry,
+        company.size,
+        company.domain,
+        company.country,
+        company.timezone,
+      ],
+    );
 
     // -------------------------------------------------------------------------
     // STEP 2: Create Owner User (Public Schema)
@@ -45,10 +53,18 @@ const createUser = async (req, res) => {
     // The user needs to exist in the global scope to log in.
     const userId = uuidv4();
     const result = await client.query(
-      `INSERT INTO users (id, tenant_id, email, password, role)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO users (id, tenant_id, email, password, role, name, phone)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [userId, tenantId, email, hasedPassword, "COMPANY"]
+      [
+        userId,
+        tenantId,
+        admin.email,
+        hasedPassword,
+        "COMPANY",
+        admin.fullName,
+        admin.phone,
+      ],
     );
 
     // -------------------------------------------------------------------------
@@ -140,7 +156,7 @@ const loginUser = async (req, res) => {
 
     const tenantAvailable = await client.query(
       "SELECT * FROM tenants WHERE id=$1",
-      [user.rows[0].tenant_id]
+      [user.rows[0].tenant_id],
     );
     if (tenantAvailable.rows.length === 0) {
       return res.status(401).json({ message: "Invalid email or password" });
@@ -148,7 +164,7 @@ const loginUser = async (req, res) => {
 
     const isPasswordValid = await bcrypt.compare(
       password,
-      user.rows[0].password
+      user.rows[0].password,
     );
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid email or password" });
@@ -162,14 +178,14 @@ const loginUser = async (req, res) => {
       process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: "1h", //token expires in 1 hour
-      }
+      },
     );
     const refreshToken = jwt.sign(
       { id: user.rows[0].id },
       process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: "1d", //token expires in 1 day
-      }
+      },
     );
     console.log("Access secret loaded:", !!process.env.ACCESS_TOKEN_SECRET);
 

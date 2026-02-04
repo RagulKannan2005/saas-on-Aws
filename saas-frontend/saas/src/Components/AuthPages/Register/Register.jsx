@@ -21,7 +21,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = {
       company: {
@@ -41,7 +41,28 @@ const Register = () => {
       },
     };
     console.log("Registration attempt:", formData);
-    // Add registration API call here
+
+    try {
+      const response = await fetch("http://localhost:5001/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Registration Successful!");
+        navigate("/login");
+      } else {
+        alert(data.message || "Registration Failed");
+      }
+    } catch (error) {
+      console.error("Error submitting registration:", error);
+      alert("An error occurred. Please try again.");
+    }
   };
 
   return (

@@ -12,11 +12,13 @@ import {
 import { NavLink, useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 
+import { useAuth } from "../../Context/AuthContext";
+
 const SideBar = () => {
   const [collapsed, setCollapsed] = useState(window.innerWidth < 768);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Temporary auth state simulation
+  const { user, logout } = useAuth();
+  const isLoggedIn = !!user;
   const navigate = useNavigate();
-
 
   useEffect(() => {
     const handleResize = () => {
@@ -28,8 +30,14 @@ const SideBar = () => {
     };
 
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
+
+  const handleLogout = () => {
+    logout();
+  };
 
   // Helper to close sidebar on mobile when a link is clicked
   const handleNavClick = () => {
@@ -44,7 +52,6 @@ const SideBar = () => {
     { title: "Tasks", icon: CheckSquare, path: "/tasks" },
     { title: "Team", icon: Users, path: "/teams" },
     { title: "Settings", icon: Settings, path: "/settings" },
-    
   ];
 
   return (
@@ -118,7 +125,7 @@ const SideBar = () => {
               </div>
             </>
           ) : (
-            <div className="signout" onClick={() => setIsLoggedIn(false)}>
+            <div className="signout" onClick={handleLogout}>
               <LogOut size={20} />
               {!collapsed && <span>Sign Out</span>}
             </div>

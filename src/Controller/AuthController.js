@@ -84,18 +84,22 @@ const createUser = async (req, res) => {
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(255) NOT NULL,
         description TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP
       )
     `);
     // We explicitly create the 'tasks' table (and others) inside the new schema.
     await client.query(`
       CREATE TABLE "${schemaName}".tasks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID REFERENCES "${schemaName}".projects(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
-    status VARCHAR(50) DEFAULT 'Pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id UUID REFERENCES "${schemaName}".projects(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        status VARCHAR(50) DEFAULT 'Pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP
+      )
     `);
     // We explicitly create the 'employees' table (and others) inside the new schema.
     // V2: Create 'employees' table WITHOUT project_id
@@ -106,7 +110,9 @@ const createUser = async (req, res) => {
         email VARCHAR(255) NOT NULL,
         password VARCHAR(255) NOT NULL,
         role VARCHAR(50) DEFAULT 'EMPLOYEE',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN DEFAULT FALSE,
+        deleted_at TIMESTAMP
       )
     `);
 
@@ -151,7 +157,7 @@ const loginUser = async (req, res) => {
       email,
     ]);
     if (user.rows.length === 0) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "User not found" });
     }
 
     const tenantAvailable = await client.query(
@@ -159,7 +165,7 @@ const loginUser = async (req, res) => {
       [user.rows[0].tenant_id],
     );
     if (tenantAvailable.rows.length === 0) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Tenant not linked to user" });
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -167,7 +173,7 @@ const loginUser = async (req, res) => {
       user.rows[0].password,
     );
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Incorrect password" });
     }
     const accessToken = jwt.sign(
       {
@@ -191,8 +197,9 @@ const loginUser = async (req, res) => {
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user.rows[0];
+    const company = tenantAvailable.rows[0];
 
-    res.status(200).json({ user: userWithoutPassword, accessToken });
+    res.status(200).json({ user: userWithoutPassword, company, accessToken });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Login failed" });
@@ -204,7 +211,27 @@ const loginUser = async (req, res) => {
 //@desc Get current user
 //@access Private
 const getCurrentUser = async (req, res) => {
-  res.json(req.user);
+  try {
+    const user = await client.query("SELECT * FROM users WHERE id=$1", [
+      req.user.id,
+    ]);
+    if (user.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const tenantAvailable = await client.query(
+      "SELECT * FROM tenants WHERE id=$1",
+      [user.rows[0].tenant_id],
+    );
+
+    const { password: _, ...userWithoutPassword } = user.rows[0];
+    const company = tenantAvailable.rows[0];
+
+    res.json({ user: userWithoutPassword, company });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 module.exports = { createUser, loginUser, getCurrentUser };

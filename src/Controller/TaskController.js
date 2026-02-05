@@ -40,7 +40,7 @@ const createTask = async (req, res) => {
     if (parentTaskId) {
       const parentTask = await client.query(
         `SELECT project_id FROM "${schemaName}".tasks WHERE id = $1`,
-        [parentTaskId]
+        [parentTaskId],
       );
       if (parentTask.rows.length === 0) {
         await client.query("ROLLBACK");
@@ -69,7 +69,7 @@ const createTask = async (req, res) => {
         type || "TASK",
         estimatedHours || null,
         actualHours || null,
-      ]
+      ],
     );
     const newTask = taskResult.rows[0];
 
@@ -79,14 +79,14 @@ const createTask = async (req, res) => {
         .map((empId) => `('${newTask.id}', '${empId}', 'CONTRIBUTOR')`) // Default role
         .join(",");
       await client.query(
-        `INSERT INTO "${schemaName}".task_assignees (task_id, employee_id, role) VALUES ${assigneeValues} ON CONFLICT DO NOTHING`
+        `INSERT INTO "${schemaName}".task_assignees (task_id, employee_id, role) VALUES ${assigneeValues} ON CONFLICT DO NOTHING`,
       );
     }
 
     // 3. Log Activity
     await client.query(
       `INSERT INTO "${schemaName}".task_activity (task_id, action, new_value, performed_by) VALUES ($1, $2, $3, $4)`,
-      [newTask.id, "TASK_CREATED", newTask.title, employeeId]
+      [newTask.id, "TASK_CREATED", newTask.title, employeeId],
     );
 
     await client.query("COMMIT");
@@ -125,12 +125,56 @@ const getTasks = async (req, res) => {
       GROUP BY t.id
       ORDER BY t.created_at DESC
       `,
-      [req.params.projectId]
+      [req.params.projectId],
     );
     res.json(tasks.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error fetching tasks" });
+  }
+};
+
+//route GET /api/tasks
+//desc Get all tasks for the tenant (across all projects)
+//access Private
+const getAllTasks = async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
+  try {
+    // Similar query to getTasks but removed WHERE project_id clause
+    // And added project info join to show project name in UI
+    const tasks = await client.query(
+      `
+      SELECT 
+        t.*,
+        t.parent_task_id,
+        p.name as project_name,
+        COALESCE(
+          json_agg(json_build_object('id', e.id, 'name', e.name, 'email', e.email, 'role', ta.role)) 
+          FILTER (WHERE e.id IS NOT NULL), 
+          '[]'
+        ) as assignees,
+        (SELECT COUNT(*) FROM "${schemaName}".task_comments tc WHERE tc.task_id = t.id AND tc.is_deleted = FALSE) as comment_count
+      FROM "${schemaName}".tasks t
+      LEFT JOIN "${schemaName}".projects p ON t.project_id = p.id
+      LEFT JOIN "${schemaName}".task_assignees ta ON t.id = ta.task_id
+      LEFT JOIN "${schemaName}".employees e ON ta.employee_id = e.id
+      WHERE t.is_deleted = FALSE
+      GROUP BY t.id, p.name
+      ORDER BY t.created_at DESC
+      `,
+    );
+
+    // Map project_name to Project object structure expected by frontend
+    const formattedTasks = tasks.rows.map((task) => ({
+      ...task,
+      Project: { name: task.project_name },
+    }));
+
+    res.json(formattedTasks);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching all tasks" });
   }
 };
 
@@ -158,7 +202,7 @@ const updateTask = async (req, res) => {
     // 1. Fetch current state
     const currentTaskResult = await client.query(
       `SELECT * FROM "${schemaName}".tasks WHERE id = $1`,
-      [req.params.id]
+      [req.params.id],
     );
     if (currentTaskResult.rows.length === 0) {
       await client.query("ROLLBACK");
@@ -204,9 +248,9 @@ const updateTask = async (req, res) => {
       values.push(req.params.id);
       await client.query(
         `UPDATE "${schemaName}".tasks SET ${updateFields.join(
-          ", "
+          ", ",
         )} WHERE id = $${idx} AND is_deleted = FALSE`,
-        values
+        values,
       );
 
       // Log Activities
@@ -219,7 +263,7 @@ const updateTask = async (req, res) => {
             currentTask.status,
             status,
             employeeId,
-          ]
+          ],
         );
       }
       if (priority && priority !== currentTask.priority) {
@@ -231,7 +275,7 @@ const updateTask = async (req, res) => {
             currentTask.priority,
             priority,
             employeeId,
-          ]
+          ],
         );
       }
     }
@@ -240,7 +284,7 @@ const updateTask = async (req, res) => {
     if (assignees && Array.isArray(assignees)) {
       await client.query(
         `DELETE FROM "${schemaName}".task_assignees WHERE task_id = $1`,
-        [req.params.id]
+        [req.params.id],
       );
 
       if (assignees.length > 0) {
@@ -248,7 +292,7 @@ const updateTask = async (req, res) => {
           .map((empId) => `('${req.params.id}', '${empId}', 'CONTRIBUTOR')`) // Default role
           .join(",");
         await client.query(
-          `INSERT INTO "${schemaName}".task_assignees (task_id, employee_id, role) VALUES ${assigneeValues} ON CONFLICT DO NOTHING`
+          `INSERT INTO "${schemaName}".task_assignees (task_id, employee_id, role) VALUES ${assigneeValues} ON CONFLICT DO NOTHING`,
         );
       }
 
@@ -260,7 +304,7 @@ const updateTask = async (req, res) => {
           "ASSIGNEE_UPDATED",
           `Count: ${assignees.length}`,
           employeeId,
-        ]
+        ],
       );
     }
 
@@ -268,7 +312,7 @@ const updateTask = async (req, res) => {
 
     const updatedTask = await client.query(
       `SELECT * FROM "${schemaName}".tasks WHERE id = $1`,
-      [req.params.id]
+      [req.params.id],
     );
 
     res.json(updatedTask.rows[0]);
@@ -288,7 +332,7 @@ const deleteTask = async (req, res) => {
   try {
     const result = await client.query(
       `UPDATE "${schemaName}".tasks SET is_deleted = TRUE, deleted_at = NOW() WHERE id = $1 RETURNING *`,
-      [req.params.id]
+      [req.params.id],
     );
 
     if (result.rows.length === 0) {
@@ -317,7 +361,7 @@ const addComment = async (req, res) => {
   try {
     const comment = await client.query(
       `INSERT INTO "${schemaName}".task_comments (task_id, employee_id, comment) VALUES ($1, $2, $3) RETURNING *`,
-      [taskId, employeeId, text]
+      [taskId, employeeId, text],
     );
     res.status(201).json(comment.rows[0]);
   } catch (err) {
@@ -338,7 +382,7 @@ const getComments = async (req, res) => {
              LEFT JOIN "${schemaName}".employees e ON tc.employee_id = e.id
              WHERE tc.task_id = $1 AND tc.is_deleted = FALSE
              ORDER BY tc.created_at ASC`,
-      [taskId]
+      [taskId],
     );
     res.json(comments.rows);
   } catch (err) {
@@ -356,7 +400,7 @@ const deleteComment = async (req, res) => {
   try {
     const result = await client.query(
       `UPDATE "${schemaName}".task_comments SET is_deleted = TRUE WHERE id = $1 AND employee_id = $2 RETURNING *`,
-      [commentId, employeeId]
+      [commentId, employeeId],
     );
     if (result.rows.length === 0) {
       return res
@@ -382,7 +426,7 @@ const getTaskActivity = async (req, res) => {
              LEFT JOIN "${schemaName}".employees e ON ta.performed_by = e.id
              WHERE ta.task_id = $1
              ORDER BY ta.created_at DESC`,
-      [taskId]
+      [taskId],
     );
     res.json(activity.rows);
   } catch (err) {
@@ -400,4 +444,5 @@ module.exports = {
   getComments,
   deleteComment,
   getTaskActivity,
+  getAllTasks,
 };

@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AuthProvider } from "./Context/AuthContext";
 import SideBar from "../src/Components/Navbar/SideBar";
 
 import Dashboard from "../src/Components/Dashboard/DashBoard";
@@ -26,23 +27,25 @@ function App() {
   );
 
   return (
-    <div className="app-layout">
-      {shouldShowSidebar && <SideBar />}
+    <AuthProvider>
+      <div className="app-layout">
+        {shouldShowSidebar && <SideBar />}
 
-      <main className="main-content">
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/tasks" element={<Tasks />} />
-          <Route path="/teams" element={<Teams />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="*" element={<ErrorPage />} />
-        </Routes>
-      </main>
-    </div>
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/teams" element={<Teams />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="*" element={<ErrorPage />} />
+          </Routes>
+        </main>
+      </div>
+    </AuthProvider>
   );
 }
 

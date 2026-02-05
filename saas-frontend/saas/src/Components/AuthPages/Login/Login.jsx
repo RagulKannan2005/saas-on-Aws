@@ -1,22 +1,41 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+import { useAuth } from "../../../Context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handlelogin = async (e) => {
     e.preventDefault();
-    console.log("Login attempt:", { email, password, rememberMe });
-    // Add actual login logic here
+    try {
+      const response = await axios.post("/api/auth/login", { email, password });
+      console.log("Login successful:", response.data);
+
+      const { accessToken, user, company } = response.data;
+      // Combine user and company into a single profile object for the context
+      await login(accessToken, { user, company });
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Login failed:", error);
+      alert(error.response?.data?.message || "Login failed");
+    }
   };
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   console.log("Login attempt:", { email, password, rememberMe });
+  //   // Add actual login logic here
+  // };
 
   return (
     <StyledWrapper>
-      <form className="form" onSubmit={handleSubmit}>
+      <form className="form" onSubmit={handlelogin}>
         <div className="flex-column">
           <label>Email </label>
         </div>
@@ -36,6 +55,7 @@ const Login = () => {
             className="input"
             placeholder="Enter your Email"
             value={email}
+            autoComplete="username"
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
@@ -57,6 +77,7 @@ const Login = () => {
             className="input"
             placeholder="Enter your Password"
             value={password}
+            autoComplete="current-password"
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>

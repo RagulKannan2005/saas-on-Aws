@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   createTask,
   getTasks,
+  getAllTasks,
   updateTask,
   deleteTask,
   addComment,
@@ -17,6 +18,7 @@ router.use(ValidateToken);
 
 // Task Management
 router.post("/tasks", verifyRole(["COMPANY", "MANAGER"]), createTask);
+router.get("/tasks", getAllTasks); // New route for all tasks
 router.get("/projects/:projectId/tasks", getTasks);
 router.put("/tasks/:id", verifyRole(["COMPANY", "MANAGER"]), updateTask);
 router.delete("/tasks/:id", verifyRole(["COMPANY", "MANAGER"]), deleteTask);

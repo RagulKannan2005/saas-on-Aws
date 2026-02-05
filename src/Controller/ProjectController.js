@@ -11,7 +11,19 @@ const getAllProjects = async (req, res) => {
   const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
   try {
     const projects = await client.query(
-      `SELECT * FROM "${schemaName}".projects WHERE is_deleted = FALSE`
+      `
+      SELECT 
+        p.*,
+        COALESCE(
+          json_agg(t.*) FILTER (WHERE t.id IS NOT NULL AND t.is_deleted = FALSE), 
+          '[]'
+        ) as tasks
+      FROM "${schemaName}".projects p
+      LEFT JOIN "${schemaName}".tasks t ON p.id = t.project_id
+      WHERE p.is_deleted = FALSE
+      GROUP BY p.id
+      ORDER BY p.created_at DESC
+      `,
     );
     res.json(projects.rows);
   } catch (err) {
@@ -40,7 +52,7 @@ const getProjectByID = async (req, res) => {
             WHERE p.id = $1 AND p.is_deleted = FALSE
             GROUP BY p.id
             `,
-      [req.params.id]
+      [req.params.id],
     );
     if (project.rows.length === 0) {
       return res.status(404).json({ message: "Project not found" });
@@ -69,7 +81,7 @@ const createProject = async (req, res) => {
   try {
     const project = await client.query(
       `INSERT INTO "${schemaName}".projects (name, description) VALUES ($1, $2) RETURNING *`,
-      [name, description]
+      [name, description],
     );
     res.status(201).json(project.rows[0]);
   } catch (err) {
@@ -95,7 +107,7 @@ const UpdateProject = async (req, res) => {
   try {
     const project = await client.query(
       `UPDATE "${schemaName}".projects SET name = $1, description = $2 WHERE id = $3 AND is_deleted = FALSE RETURNING *`,
-      [name, description, req.params.id]
+      [name, description, req.params.id],
     );
     if (project.rows.length === 0) {
       return res.status(404).json({ message: "Project not found" });
@@ -115,7 +127,7 @@ const deleteProject = async (req, res) => {
     // Soft Delete
     const project = await client.query(
       `UPDATE "${schemaName}".projects SET is_deleted = TRUE, deleted_at = NOW() WHERE id = $1 RETURNING *`,
-      [req.params.id]
+      [req.params.id],
     );
 
     if (project.rows.length === 0) {

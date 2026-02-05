@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import Headerpart from "../Dashboard/Headerpart";
 import { Plus, Eye, Pencil, Trash2, X } from "lucide-react";
 import "./Projects.css";
+import axios from "axios";
+import { useAuth } from "../../Context/AuthContext";
 
 /* ---------- Action Menu ---------- */
 const ActionMenu = () => {
@@ -53,27 +55,53 @@ const ActionMenu = () => {
 /* ---------- Main Component ---------- */
 const Projects = () => {
   const [showModal, setShowModal] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [projects, setProjects] = useState([]);
 
-  const projectsData = [
-    {
-      id: 1,
-      name: "Website Redesign",
-      description: "Complete redesign of company website",
-      date: "15/01/2024",
-      tasks: 23,
-      status: "Active",
-      statusClass: "active",
-    },
-    {
-      id: 2,
-      name: "Database Migration",
-      description: "Migrate MongoDB to PostgreSQL",
-      date: "10/12/2023",
-      tasks: 18,
-      status: "Completed",
-      statusClass: "completed",
-    },
-  ];
+  const { user } = useAuth();
+
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await axios.get("/api/projects", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setProjects(response.data);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const handlecreateproject = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await axios.post(
+        "/api/projects",
+        { name, description },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      console.log(response.data);
+      setShowModal(false);
+      setName("");
+      setDescription("");
+      fetchProjects(); // Refresh the list
+    } catch (error) {
+      console.error(error);
+      alert("Failed to create project");
+    }
+  };
 
   return (
     <>
@@ -107,24 +135,32 @@ const Projects = () => {
           </div>
 
           {/* Rows */}
-          {projectsData.map((project, index) => (
-            <div
-              key={project.id}
-              className="project_row"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="project_info">
-                <h4>{project.name}</h4>
-                <span>{project.description}</span>
+          {projects.length > 0 ? (
+            projects.map((project, index) => (
+              <div
+                key={project.id}
+                className="project_row"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="project_info">
+                  <h4>{project.name}</h4>
+                  <span>{project.description}</span>
+                </div>
+                <p>{new Date(project.created_at).toLocaleDateString()}</p>
+                <p>
+                  {project.tasks && Array.isArray(project.tasks)
+                    ? project.tasks.filter((task) => !task.is_deleted).length
+                    : 0}
+                </p>
+                <span className={`status active`}>Active</span>
+                <ActionMenu />
               </div>
-              <p>{project.date}</p>
-              <p>{project.tasks}</p>
-              <span className={`status ${project.statusClass}`}>
-                {project.status}
-              </span>
-              <ActionMenu />
+            ))
+          ) : (
+            <div className="no-projects">
+              <p>No projects found. Create one to get started!</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
@@ -146,10 +182,19 @@ const Projects = () => {
 
             <div className="modal_body">
               <label>Project Name</label>
-              <input placeholder="Enter project name" />
+              <input
+                placeholder="Enter project name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
 
               <label>Description</label>
-              <textarea placeholder="Enter project description" rows="4" />
+              <textarea
+                placeholder="Enter project description"
+                rows="4"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
             </div>
 
             <div className="modal_footer">
@@ -159,7 +204,9 @@ const Projects = () => {
               >
                 Cancel
               </button>
-              <button className="create_btn">Create Project</button>
+              <button className="create_btn" onClick={handlecreateproject}>
+                Create Project
+              </button>
             </div>
           </div>
         </div>

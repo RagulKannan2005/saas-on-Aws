@@ -14,7 +14,7 @@ const {
 const { ValidateToken } = require("../../middleware/ValidateToken");
 const { verifyRole } = require("../../middleware/verifyRole");
 
-router.use(ValidateToken);
+router.use(["/tasks", "/projects", "/comments"], ValidateToken);
 
 // Task Management
 router.post("/tasks", verifyRole(["COMPANY", "MANAGER"]), createTask);

@@ -1,19 +1,19 @@
-const express = require('express');
-const app =require("./app");
-const client=require("./config/databasepg");
+const express = require("express");
+const app = require("./app");
+const client = require("./config/databasepg");
 
 const port = process.env.PORT || 5001;
 require("dotenv").config();
-client.query(`Select NOW()`,(err,res)=>{
-    if(err){
-        console.log("DB is not Connected");
-    }
-    else{
-        console.log("DB is Connected");
-    }
-})
-
+client.query(`Select NOW()`, (err, res) => {
+  if (err) {
+    console.log("DB is not Connected");
+  } else {
+    console.log("DB is Connected");
+  }
+});
 
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+  console.log(`Example app listening on port ${port}`);
 });
+// Force restart for middleware fix
+// Force restart for debugging

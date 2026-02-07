@@ -5,7 +5,7 @@ const client = require("../config/databasepg");
 // @access Private (Company/Manager)
 const addMember = async (req, res) => {
   const { id } = req.params; // project_id
-  const { employeeId } = req.body;
+  const { employeeId, role } = req.body;
   const tenantId = req.user.tenantId;
   const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
 
@@ -17,7 +17,7 @@ const addMember = async (req, res) => {
     // 1. Check if Project exists
     const project = await client.query(
       `SELECT * FROM "${schemaName}".projects WHERE id = $1`,
-      [id]
+      [id],
     );
     if (project.rows.length === 0) {
       return res.status(404).json({ message: "Project not found" });
@@ -26,20 +26,20 @@ const addMember = async (req, res) => {
     // 2. Check if Employee exists
     const employee = await client.query(
       `SELECT * FROM "${schemaName}".employees WHERE id = $1`,
-      [employeeId]
+      [employeeId],
     );
     if (employee.rows.length === 0) {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    // 3. Add to project_members
+    // 3. Add to project_members with role
     const result = await client.query(
       `
-            INSERT INTO "${schemaName}".project_members (project_id, employee_id)
-            VALUES ($1, $2)
+            INSERT INTO "${schemaName}".project_members (project_id, employee_id, role)
+            VALUES ($1, $2, $3)
             RETURNING *
         `,
-      [id, employeeId]
+      [id, employeeId, role || "MEMBER"],
     );
 
     res.status(201).json(result.rows[0]);
@@ -70,7 +70,7 @@ const removeMember = async (req, res) => {
             WHERE project_id = $1 AND employee_id = $2
             RETURNING *
         `,
-      [id, employeeId]
+      [id, employeeId],
     );
 
     if (result.rows.length === 0) {
@@ -102,7 +102,7 @@ const getProjectMembers = async (req, res) => {
             JOIN "${schemaName}".project_members pm ON e.id = pm.employee_id
             WHERE pm.project_id = $1
         `,
-      [id]
+      [id],
     );
 
     res.json(members.rows);

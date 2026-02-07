@@ -1,6 +1,14 @@
 const client = require("../config/databasepg");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
+const path = require("path");
+
+const logToFile = (message) => {
+  const logPath = path.join(__dirname, "../../debug_login.txt");
+  const timestamp = new Date().toISOString();
+  fs.appendFileSync(logPath, `${timestamp}: ${message}\n`);
+};
 
 //@route /api/employees/company/:id
 //@desc Get company employees
@@ -11,7 +19,7 @@ const getCompanyEmployees = async (req, res) => {
   const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
   try {
     const employees = await client.query(
-      `SELECT * FROM "${schemaName}".employees WHERE is_deleted = FALSE`
+      `SELECT * FROM "${schemaName}".employees WHERE is_deleted = FALSE`,
     );
     if (employees.rows.length === 0) {
       return res.status(404).json({ message: "Employees not found" });
@@ -60,7 +68,7 @@ const createEmployee = async (req, res) => {
   try {
     const employeeAvailable = await client.query(
       `SELECT * FROM "${schemaName}".employees WHERE email=$1 AND is_deleted = FALSE`,
-      [email]
+      [email],
     );
 
     if (employeeAvailable.rows.length > 0) {
@@ -109,29 +117,36 @@ const createEmployee = async (req, res) => {
 
 const loginEmployee = async (req, res) => {
   const { email, password, tenantId } = req.body;
+  logToFile(
+    `Login attempt matched /employees/login. Email: ${email}, Tenant: ${tenantId}`,
+  );
 
   if (!email || !password || !tenantId) {
+    logToFile("Missing credentials in request body");
     return res
       .status(400)
       .json({ message: "Email, password, and tenantId are required" });
   }
 
   const schemaName = `tenant_${tenantId.replace(/-/g, "_")}`;
+  logToFile(`Derived Schema: ${schemaName}`);
 
   try {
     const employee = await client.query(
       `SELECT * FROM "${schemaName}".employees WHERE email=$1 AND is_deleted = FALSE`,
-      [email]
+      [email],
     );
     if (employee.rows.length === 0) {
+      logToFile(`User NOT FOUND in schema ${schemaName}. Email: ${email}`);
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const isPasswordValid = await bcrypt.compare(
       password,
-      employee.rows[0].password
+      employee.rows[0].password,
     );
     if (!isPasswordValid) {
+      logToFile(`INVALID PASSWORD for ${email}`);
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
@@ -151,7 +166,7 @@ const loginEmployee = async (req, res) => {
       process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: "1h",
-      }
+      },
     );
     const refreshToken = jwt.sign(
       {
@@ -162,9 +177,19 @@ const loginEmployee = async (req, res) => {
       process.env.REFRESH_TOKEN_SECRET || process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: "1d",
-      }
+      },
     );
-    res.json({ name: employee.rows[0].name, accessToken, refreshToken });
+    res.json({
+      user: {
+        id: employee.rows[0].id,
+        name: employee.rows[0].name,
+        email: employee.rows[0].email,
+        role: employee.rows[0].role,
+        tenantId: tenantId,
+      },
+      accessToken,
+      refreshToken,
+    });
   } catch (error) {
     console.error(error);
     if (error.code === "42P01") {
@@ -203,7 +228,7 @@ const updateEmployee = async (req, res) => {
   try {
     const employee = await client.query(
       `SELECT * FROM "${schemaName}".employees WHERE id=$1 AND is_deleted = FALSE`,
-      [id]
+      [id],
     );
     if (employee.rows.length === 0) {
       return res.status(404).json({ message: "Employee not found" });

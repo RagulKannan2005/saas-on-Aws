@@ -10,16 +10,37 @@ const Login = () => {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [tenantId, setTenantId] = useState("");
+  const [loginType, setLoginType] = useState("admin"); // 'admin' or 'user'
 
   const handlelogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/api/auth/login", { email, password });
-      console.log("Login successful:", response.data);
+      if (loginType === "admin") {
+        const response = await axios.post("/api/auth/login", {
+          email,
+          password,
+        });
+        console.log("Admin Login successful:", response.data);
 
-      const { accessToken, user, company } = response.data;
-      // Combine user and company into a single profile object for the context
-      await login(accessToken, { user, company });
+        const { accessToken, user, company } = response.data;
+        await login(accessToken, { user, company });
+      } else {
+        if (!tenantId) {
+          alert("Tenant ID is required for user login");
+          return;
+        }
+        const response = await axios.post("/api/employees/login", {
+          email,
+          password,
+          tenantId,
+        });
+        console.log("User Login successful:", response.data);
+
+        const { accessToken, user } = response.data;
+        // Employee response now includes full user object with role and tenantId
+        await login(accessToken, { user });
+      }
 
       navigate("/dashboard");
     } catch (error) {
@@ -36,6 +57,40 @@ const Login = () => {
   return (
     <StyledWrapper>
       <form className="form" onSubmit={handlelogin}>
+        {/* Toggle Switch */}
+        <div className="login_toggle">
+          <button
+            type="button"
+            className={loginType === "admin" ? "active" : ""}
+            onClick={() => setLoginType("admin")}
+          >
+            Admin
+          </button>
+          <button
+            type="button"
+            className={loginType === "user" ? "active" : ""}
+            onClick={() => setLoginType("user")}
+          >
+            User
+          </button>
+        </div>
+
+        {loginType === "user" && (
+          <>
+            <div className="flex-column">
+              <label>Tenant ID </label>
+            </div>
+            <div className="inputForm">
+              <input
+                type="text"
+                className="input"
+                placeholder="Enter Company ID"
+                value={tenantId}
+                onChange={(e) => setTenantId(e.target.value)}
+              />
+            </div>
+          </>
+        )}
         <div className="flex-column">
           <label>Email </label>
         </div>
@@ -306,6 +361,35 @@ const StyledWrapper = styled.div`
 
   .btn:hover {
     border: 1px solid #2d79f3;
+  }
+
+  .login_toggle {
+    display: flex;
+    background-color: #2b2b2b;
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 20px;
+    width: 100%;
+    gap: 5px;
+  }
+
+  .login_toggle button {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #888;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    align-self: initial !important; /* Override .form button */
+  }
+
+  .login_toggle button.active {
+    background-color: #2d79f3;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
 `;
 

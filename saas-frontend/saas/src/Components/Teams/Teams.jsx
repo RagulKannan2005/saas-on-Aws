@@ -8,6 +8,9 @@ const Teams = () => {
   const [openAddEmployeeModal, setOpenAddEmployeeModal] = useState(false);
   const [openAssignTeamModal, setOpenAssignTeamModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
 
   const [employees, setEmployees] = useState([]);
   const [stats, setStats] = useState({
@@ -46,9 +49,29 @@ const Teams = () => {
     }
   };
 
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await axios.get("/api/projects", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setProjects(response.data);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  };
+
   useEffect(() => {
     fetchEmployees();
   }, []);
+
+  useEffect(() => {
+    if (openAssignTeamModal) {
+      fetchProjects();
+    }
+  }, [openAssignTeamModal]);
 
   const handleCreateEmployee = async (e) => {
     e.preventDefault();
@@ -78,6 +101,41 @@ const Teams = () => {
       console.error("Error creating employee:", error);
       alert(
         "Failed to create employee: " +
+          (error.response?.data?.message || error.message),
+      );
+    }
+  };
+
+  const handleAddMember = async () => {
+    if (!selectedProject || !selectedEmployee) {
+      alert("Please select both a project and an employee.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      await axios.post(
+        `/api/projects/${selectedProject}/members`,
+        {
+          employeeId: selectedEmployee.id,
+          role: selectedRole,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      alert("Member added to project successfully");
+      setOpenAssignTeamModal(false);
+      // Reset selections
+      setSelectedProject("");
+      setSelectedEmployee(null);
+      setSelectedRole("");
+    } catch (error) {
+      console.error("Error adding member:", error);
+      alert(
+        "Failed to add member: " +
           (error.response?.data?.message || error.message),
       );
     }
@@ -144,11 +202,16 @@ const Teams = () => {
 
             <div className="team_model_body">
               <label>Project *</label>
-              <select>
+              <select
+                value={selectedProject}
+                onChange={(e) => setSelectedProject(e.target.value)}
+              >
                 <option value="">Select Project</option>
-                <option>Project 1</option>
-                <option>Project 2</option>
-                <option>Project 3</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
               </select>
 
               <label>Employee *</label>
@@ -175,15 +238,17 @@ const Teams = () => {
               />
 
               <label>Project Responsibility</label>
-              <select>
+              <select
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+              >
                 <option value="">Select Responsibility</option>
-                <option>Developer</option>
-                <option>Reviewer</option>
-                <option>Project Lead</option>
-                <option>QA</option>
+                <option value="Developer">Developer</option>
+                <option value="Reviewer">Reviewer</option>
+                <option value="Project Lead">Project Lead</option>
+                <option value="QA">QA</option>
               </select>
             </div>
-            
 
             <div className="team_model_footer">
               <button
@@ -192,7 +257,9 @@ const Teams = () => {
               >
                 Cancel
               </button>
-              <button className="create_btn">Add to Project</button>
+              <button className="create_btn" onClick={handleAddMember}>
+                Add to Project
+              </button>
             </div>
           </div>
         </div>

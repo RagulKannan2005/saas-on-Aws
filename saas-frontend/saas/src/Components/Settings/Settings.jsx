@@ -19,6 +19,7 @@ import Privacy from "./Settings_Components/Privacy/Privacy";
 import Billing from "./Settings_Components/Billing/Billing";
 import Subscription from "./Settings_Components/Subscription/Subscription";
 import Help from "./Settings_Components/Help/Help";
+import Assignedprojects from "./Settings_Components/Assignedprojects/Assignedprojects";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("Profile");
@@ -32,6 +33,7 @@ const Settings = () => {
     { name: "Billing", icon: CreditCard, component: Billing },
     { name: "Subscription", icon: Gem, component: Subscription },
     { name: "Help", icon: HelpCircle, component: Help },
+    { name: "Assignedprojects", icon: HelpCircle, component: Assignedprojects },
   ];
 
   const activeMenu = menuItems.find((item) => item.name === activeTab);

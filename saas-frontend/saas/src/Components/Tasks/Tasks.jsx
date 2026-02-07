@@ -11,6 +11,56 @@ const Tasks = () => {
   const [tasks, setTasks] = useState([]);
   const dateInputRef = useRef(null);
 
+  /* ---------- Filtering State ---------- */
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All Status");
+  const [priorityFilter, setPriorityFilter] = useState("All Priority");
+
+  /* ---------- Task Updates ---------- */
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setSelectedTask((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const updatetask = async () => {
+    if (!selectedTask) return;
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const payload = {
+        title: selectedTask.title,
+        status: selectedTask.status,
+        priority: selectedTask.priority,
+        type: selectedTask.type,
+        dueDate: selectedTask.dueDate,
+        estimatedHours: selectedTask.estimatedHours,
+        actualHours: selectedTask.actualHours,
+        assignees: selectedTask.assignees
+          ? selectedTask.assignees.map((a) => a.id)
+          : [],
+      };
+
+      const response = await axios.put(
+        `/api/tasks/${selectedTask.id}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      console.log("Task updated:", response.data);
+      setOpenDetailsModal(false);
+      fetchTasks(); // Refresh list
+    } catch (error) {
+      console.error("Error updating task:", error);
+      alert("Failed to update task");
+    }
+  };
+
   useEffect(() => {
     if (openCreateModal || openDetailsModal) {
       document.body.style.overflow = "hidden";
@@ -72,16 +122,34 @@ const Tasks = () => {
     }
   };
 
+  /* ---------- Filtering Logic ---------- */
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch = task.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "All Status" || task.status === statusFilter;
+    const matchesPriority =
+      priorityFilter === "All Priority" || task.priority === priorityFilter;
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("All Status");
+    setPriorityFilter("All Priority");
+  };
+
   useEffect(() => {
     fetchTasks();
   }, []);
 
   useEffect(() => {
-    if (openCreateModal) {
+    if (openCreateModal || openDetailsModal) {
       fetchProjects();
       fetchEmployees();
     }
-  }, [openCreateModal]);
+  }, [openCreateModal, openDetailsModal]);
 
   const handlecreateTask = async (e) => {
     e.preventDefault();
@@ -116,6 +184,24 @@ const Tasks = () => {
     }
   };
 
+  const handleAssigneeChange = (e) => {
+    const employeeId = e.target.value;
+    const employee = employees.find((emp) => emp.id === employeeId);
+
+    setSelectedTask((prev) => ({
+      ...prev,
+      assignees: employee ? [employee] : [],
+    }));
+  };
+
+  const searchTasks = (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredTasks = tasks.filter((task) =>
+      task.title.toLowerCase().includes(searchTerm),
+    );
+    setTasks(filteredTasks);
+  };
+
   return (
     <>
       <Headerpart />
@@ -141,25 +227,39 @@ const Tasks = () => {
         <div className="tasks_filters">
           <div className="search_box">
             <Search size={18} />
-            <input placeholder="Search tasks..." />
+            <input
+              placeholder="Search tasks..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
 
-          <select className="filter_select">
+          <select
+            className="filter_select"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
             <option>All Status</option>
-            <option>TODO</option>
-            <option>IN_PROGRESS</option>
-            <option>DONE</option>
-            <option>BLOCKED</option>
+            <option value="TODO">TODO</option>
+            <option value="IN_PROGRESS">IN_PROGRESS</option>
+            <option value="DONE">DONE</option>
+            <option value="BLOCKED">BLOCKED</option>
           </select>
 
-          <select className="filter_select">
+          <select
+            className="filter_select"
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+          >
             <option>All Priority</option>
-            <option>High</option>
-            <option>Medium</option>
-            <option>Low</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
           </select>
 
-          <button className="clear_btn">Clear Filters</button>
+          <button className="clear_btn" onClick={clearFilters}>
+            Clear Filters
+          </button>
         </div>
 
         {/* Table */}
@@ -175,14 +275,14 @@ const Tasks = () => {
           </div>
 
           <div className="tasks_list">
-            {tasks.length === 0 ? (
+            {filteredTasks.length === 0 ? (
               <p
                 style={{ padding: "20px", textAlign: "center", color: "#888" }}
               >
-                No tasks found. Create one to get started.
+                No tasks found matching your filters.
               </p>
             ) : (
-              tasks.map((task) => (
+              filteredTasks.map((task) => (
                 <div
                   key={task.id}
                   className="tasks_row clickable"
@@ -359,25 +459,29 @@ const Tasks = () => {
               <div>
                 <label>Status</label>
                 <select
-                  defaultValue={selectedTask.status}
+                  name="status"
+                  value={selectedTask.status}
+                  onChange={handleInputChange}
                   style={{ backgroundColor: "#1e1e1e" }}
                 >
-                  <option>TODO</option>
-                  <option>IN_PROGRESS</option>
-                  <option>DONE</option>
-                  <option>BLOCKED</option>
+                  <option value="TODO">TODO</option>
+                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                  <option value="DONE">DONE</option>
+                  <option value="BLOCKED">BLOCKED</option>
                 </select>
               </div>
 
               <div>
                 <label>Priority</label>
                 <select
-                  defaultValue={selectedTask.priority}
+                  name="priority"
+                  value={selectedTask.priority}
+                  onChange={handleInputChange}
                   style={{ backgroundColor: "#1e1e1e" }}
                 >
-                  <option>High</option>
-                  <option>Medium</option>
-                  <option>Low</option>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
                 </select>
               </div>
 
@@ -392,11 +496,13 @@ const Tasks = () => {
                 <label>Due Date</label>
                 <input
                   type="date"
-                  defaultValue={
+                  name="dueDate"
+                  value={
                     selectedTask.dueDate
                       ? selectedTask.dueDate.split("T")[0]
                       : ""
                   }
+                  onChange={handleInputChange}
                   style={{ backgroundColor: "#1e1e1e" }}
                 />
               </div>
@@ -406,26 +512,58 @@ const Tasks = () => {
               <label>Assigned To</label>
               <div className="assignee_box">
                 <div className="avatar" />
-                {/* Display first assignee name if available */}
-                <span>
-                  {selectedTask.assignees && selectedTask.assignees.length > 0
-                    ? selectedTask.assignees[0].name
-                    : "Unassigned"}
-                </span>
+                <select
+                  value={
+                    selectedTask.assignees && selectedTask.assignees.length > 0
+                      ? selectedTask.assignees[0].id
+                      : ""
+                  }
+                  onChange={handleAssigneeChange}
+                  style={{
+                    backgroundColor: "transparent",
+                    color: "white",
+                    border: "none",
+                    outline: "none",
+                    width: "100%",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="">Unassigned</option>
+                  {employees.map((emp) => (
+                    <option
+                      key={emp.id}
+                      value={emp.id}
+                      style={{ backgroundColor: "#1e1e1e" }}
+                    >
+                      {emp.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
+
+            <button className="update_task_btn" onClick={updatetask}>
+              Update Task
+            </button>
 
             <div className="details_grid">
               <div>
                 <label>Estimated Hours</label>
                 <input
                   type="number"
-                  defaultValue={selectedTask.estimatedHours}
+                  name="estimatedHours"
+                  value={selectedTask.estimatedHours || 0}
+                  onChange={handleInputChange}
                 />
               </div>
               <div>
                 <label>Actual Hours</label>
-                <input type="number" defaultValue={selectedTask.actualHours} />
+                <input
+                  type="number"
+                  name="actualHours"
+                  value={selectedTask.actualHours || 0}
+                  onChange={handleInputChange}
+                />
               </div>
             </div>
 
